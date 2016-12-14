@@ -53,6 +53,12 @@ class SparseHMM(object):
         return data
 
     def decodeViterbi(self, obsProb):
+        '''
+        
+        Parameters
+        ----------------
+        obsProb: n: shape(num_times, num_states)
+        '''
 
         if len(obsProb) < 1: return np.array([], dtype=np.int)
 

@@ -39,8 +39,6 @@
 
 from MonoNoteHMM import MonoNoteHMM
 from MonoNoteParameters import MonoNoteParameters
-import numpy as np
-import time
 
 
 class FrameOutput(object):
@@ -54,13 +52,13 @@ class MonoNote(object):
     def __init__(self):
         self.hmm = MonoNoteHMM()
 
-    def process(self, pitchProb):
-        obsProb = [self.hmm.calculatedObsProb(pitchProb[0]), ]
-        for iFrame in range(1, len(pitchProb)):
-            obsProb += [self.hmm.calculatedObsProb(pitchProb[iFrame])]
+    def process(self, pitch_contour_and_prob):
+        
+        obs_probs = self.hmm.calculatedObsProb(pitch_contour_and_prob)
+        obs_probs = self.hmm.normalize_obs_probs(obs_probs, pitch_contour_and_prob)
         out = []
-
-        path, scale = self.hmm.decodeViterbi(obsProb)
+        obs_probs_T = obs_probs.T
+        path, scale = self.hmm.decodeViterbi(obs_probs_T) # transpose to have time t as first dimension 
 
         for iFrame in range(len(path)):
             currPitch = -1.0

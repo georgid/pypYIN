@@ -44,6 +44,7 @@ from Yin import *
 from YinUtil import RMS
 from MonoPitch import MonoPitch
 from MonoNote import MonoNote
+PITCH_PROB = 0.9 
 
 class Feature(object):
     def __init__(self):
@@ -182,7 +183,11 @@ class PyinMain(object):
         return self.fs
 
     def getSmoothedPitchTrack(self):
-        f = Feature()
+        '''
+        1. decode pitch with Viterbi
+        
+        '''
+        
 
         if len(self.m_pitchProb) == 0:
             return self.fs
@@ -190,89 +195,114 @@ class PyinMain(object):
         # MONO-PITCH STUFF
         mp = MonoPitch()
         mpOut = mp.process(self.m_pitchProb)
+        
+        self.setDecodedMonoPitch(mpOut) # store it as a field
+
+        return mpOut
+   
+    def setDecodedMonoPitch(self, mpOut):
+        '''
+        store monoPitch mpOut in the field self.fs.m_oSmoothedPitchTrack 
+        '''
+        f = Feature()
         for iFrame in range(len(mpOut)):
-            if mpOut[iFrame] < 0 and self.m_outputUnvoiced == 0:
+            if mpOut[iFrame] < 0 and self.m_outputUnvoiced == 0: # skip unvoiced frames, if not desired to output them
                 continue
             f.resetValues()
             if self.m_outputUnvoiced == 1:
-                f.values = np.append(f.values, np.fabs(mpOut[iFrame]))
+                f.values = np.append(f.values, np.fabs(mpOut[iFrame])) #  absolute value of unvoiced if desired to output them 
             else:
                 f.values = np.append(f.values, mpOut[iFrame])
-
+    
             self.fs.m_oSmoothedPitchTrack.append(copy.copy(f))
+    
 
-        return mpOut
-
-    def getRemainingFeatures(self,mpOut):
-        f = Feature()
-
-        if len(mpOut) == 0:
+    def getRemainingFeatures(self, pitch_contour):
+        '''
+        decode note states
+        
+        
+        Parameters
+        pitch_contour :
+            only pitch values
+        -----------------------
+        '''
+        
+        MIDI_pitch_contour_and_prob = np.zeros((len(pitch_contour),2)) 
+        MIDI_pitch_contour_and_prob[:,0] = pitch_contour
+        
+        if len(pitch_contour) == 0:
             return self.fs
 
-        # if len(self.m_pitchProb) == 0:
-        #     return self.fs
-        #
-        # # MONO-PITCH STUFF
-        # mp = MonoPitch()
-        # mpOut = mp.process(self.m_pitchProb)
-        # for iFrame in range(len(mpOut)):
-        #     if mpOut[iFrame] < 0 and self.m_outputUnvoiced == 0:
-        #         continue
-        #     f.resetValues()
-        #     if self.m_outputUnvoiced == 1:
-        #         f.values = np.append(f.values, np.fabs(mpOut[iFrame]))
-        #     else:
-        #         f.values = np.append(f.values, mpOut[iFrame])
-        #
-        #     self.fs.m_oSmoothedPitchTrack.append(copy.copy(f))
 
-        # MONO-NOTE STUFF
+        ############ convert to MIDI scale
         mn = MonoNote()
-        smoothedPitch = []
-        for iFrame in range(len(mpOut)):
-            temp = []
-            if mpOut[iFrame] > 0:  # negative value: silence
-                tempPitch = 12 * log(mpOut[iFrame]/440.0)/log(2.0) + 69
-                temp += [[tempPitch, 0.9]]
-            smoothedPitch += [temp]
+        
+        for iFrame in range(len(pitch_contour)):
+            if pitch_contour[iFrame] > 0:  # zero or negative value (silence) remains with 0 probability and negative frequency in Herz
+                MIDI_pitch_contour_and_prob[iFrame][0] = 12 * log(pitch_contour[iFrame]/440.0)/log(2.0) + 69
+                MIDI_pitch_contour_and_prob[iFrame][1] = PITCH_PROB # constant voicing probability = 0.9
 
-        mnOut = mn.process(smoothedPitch)
+        mnOut = mn.process(MIDI_pitch_contour_and_prob) # decode note states Viterbi
 
-        self.fs.m_oMonoNoteOut = mnOut
+        self.fs.m_oMonoNoteOut = mnOut # array of FrameOutput 
+        return self.fs, MIDI_pitch_contour_and_prob[:,0] 
 
-        # turning feature into a note feature
-
+    def noteStatesToPitchTracks(self, MIDI_pitch_contour, mnOut):        
+        '''
+        postprocessing of MIDI_pitch
+        filter  onsets and store them as fields in  self.fs.onsetFrames
+        filter also MIDI_pitch tracks per note (notePitchTracks) and median pitches
+        
+        Parameters
+        --------------------------
+        MIDI_pitch_contour:
+            pitch contour in MIDI 
+        mnOut: array of FrameOutput 
+            decoded note states
+            
+        self.m_pitchProb ?
+        
+        '''
+        f = Feature()
         f.resetValues()
-
-        onsetFrame = 0
+        
+        self.fs.onsetFrames = [] #  onsetFrames where there is change from state 3 to 1 
         isVoiced = 0
         oldIsVoiced = 0
         nFrame = len(self.m_pitchProb)
 
-        minNoteFrames = (self.m_inputSampleRate*self.m_pruneThresh)/self.m_stepSize
-
+        minNoteFrames = (self.m_inputSampleRate*self.m_pruneThresh)/self.m_stepSize # minimum number of frames  per note
+        
         notePitchTrack = np.array([], dtype=np.float32) # collects pitches for one note at a time
+        
         for iFrame in range(nFrame):
             isVoiced = mnOut[iFrame].noteState < 3 \
-            and len(smoothedPitch[iFrame]) > 0 \
-            and (iFrame >= nFrame-2 or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity))
+            and MIDI_pitch_contour[iFrame] > 0 \
+            and (iFrame >= nFrame-2 or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity)) # isVoiced
 
-            if isVoiced and iFrame != nFrame-1:
-                if oldIsVoiced == 0: # beginning of the note
-                    onsetFrame = iFrame
-                pitch = smoothedPitch[iFrame][0][0]
-                notePitchTrack = np.append(notePitchTrack, pitch) # add to the note's pitch
+            if isVoiced and iFrame != nFrame-1: # voiced pitch frame
+                if oldIsVoiced == 0: # note onset
+                    self.fs.onsetFrames.append( iFrame )
+                    
+                MIDI_pitch = MIDI_pitch_contour[iFrame]
+                notePitchTrack = np.append(notePitchTrack, MIDI_pitch) # add to the note's MIDI_pitch
+                
             else: # not currently voiced
                 if oldIsVoiced == 1: # end of the note
                     if len(notePitchTrack) >= minNoteFrames:
-                        notePitchTrack = np.sort(notePitchTrack)
+
+                        notePitchTrack = np.sort(notePitchTrack) # what is this?
+                        self.fs.m_oNotePitchTracks.append(copy.copy(notePitchTrack)) # store current note pitch track 
+                        
                         medianPitch = notePitchTrack[int(len(notePitchTrack)/2)]
                         medianFreq = pow(2, (medianPitch-69)/12)*440
                         f.resetValues()
                         f.values = np.append(f.values, np.double(medianFreq))
-                        self.fs.m_oNotes.append(copy.copy(f))
-                        self.fs.m_oNotePitchTracks.append(copy.copy(notePitchTrack))
-                    notePitchTrack = np.array([], dtype=np.float32)
+                        self.fs.m_oNotes.append(copy.copy(f)) # store median frequency per note
+
+                    
+                    notePitchTrack = np.array([], dtype=np.float32) # new note starts
             oldIsVoiced = isVoiced
 
         return self.fs
