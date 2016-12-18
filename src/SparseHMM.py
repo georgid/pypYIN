@@ -39,6 +39,7 @@
 
 import numpy as np
 from math import *
+import logging
 
 class SparseHMM(object):
 
@@ -59,6 +60,7 @@ class SparseHMM(object):
         ----------------
         obsProb: n: shape(num_times, num_states)
         '''
+        logging.warning('recognizing note states...')
 
         if len(obsProb) < 1: return np.array([], dtype=np.int)
 
@@ -89,6 +91,7 @@ class SparseHMM(object):
 
         # rest of forward step
         for iFrame in range(1, nFrame):
+            logging.warning('decoding time frame {} out of {}...'.format(iFrame, nFrame))
             deltasum = 0
             psi = psi + [np.zeros(nState, dtype=np.int)]
 

@@ -151,6 +151,7 @@ class PyinMain(object):
                     firstStack = True
                 else:
                     tempPitchProb = np.vstack((tempPitchProb, np.array([tempPitch, yo.freqProb[iCandidate][1]*factor], dtype=np.float64)))
+       
         if len(self.m_pitchProb) < 1 and len(tempPitchProb) > 0:
             self.m_pitchProb = [tempPitchProb,]
         elif len(self.m_pitchProb) >= 1:
@@ -242,15 +243,16 @@ class PyinMain(object):
             if pitch_contour[iFrame] > 0:  # zero or negative value (silence) remains with 0 probability and negative frequency in Herz
                 MIDI_pitch_contour_and_prob[iFrame][0] = 12 * log(pitch_contour[iFrame]/440.0)/log(2.0) + 69
                 MIDI_pitch_contour_and_prob[iFrame][1] = PITCH_PROB # constant voicing probability = 0.9
-
+        
         mnOut = mn.process(MIDI_pitch_contour_and_prob) # decode note states Viterbi
 
         self.fs.m_oMonoNoteOut = mnOut # array of FrameOutput 
         return self.fs, MIDI_pitch_contour_and_prob[:,0] 
 
-    def noteStatesToPitchTracks(self, MIDI_pitch_contour, mnOut):        
+    def postprocessPitchTracks(self, MIDI_pitch_contour, mnOut):        
         '''
-        postprocessing of MIDI_pitch
+        
+        postprocessing of MIDI_pitch noteStatesToPitch
         filter  onsets and store them as fields in  self.fs.onsetFrames
         filter also MIDI_pitch tracks per note (notePitchTracks) and median pitches
         
@@ -261,7 +263,7 @@ class PyinMain(object):
         mnOut: array of FrameOutput 
             decoded note states
             
-        self.m_pitchProb ?
+    
         
         '''
         f = Feature()
@@ -270,8 +272,8 @@ class PyinMain(object):
         self.fs.onsetFrames = [] #  onsetFrames where there is change from state 3 to 1 
         isVoiced = 0
         oldIsVoiced = 0
-        nFrame = len(self.m_pitchProb)
-
+        nFrame = len(MIDI_pitch_contour)
+        
         minNoteFrames = (self.m_inputSampleRate*self.m_pruneThresh)/self.m_stepSize # minimum number of frames  per note
         
         notePitchTrack = np.array([], dtype=np.float32) # collects pitches for one note at a time
@@ -279,7 +281,9 @@ class PyinMain(object):
         for iFrame in range(nFrame):
             isVoiced = mnOut[iFrame].noteState < 3 \
             and MIDI_pitch_contour[iFrame] > 0 \
-            and (iFrame >= nFrame-2 or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity)) # isVoiced
+            and (iFrame >= nFrame-2 )
+# not use RMS for now because no rms is set in melodia
+#             or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity)) # change based on pitch amplitude 
 
             if isVoiced and iFrame != nFrame-1: # voiced pitch frame
                 if oldIsVoiced == 0: # note onset

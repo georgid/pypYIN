@@ -39,6 +39,7 @@
 
 from MonoNoteHMM import MonoNoteHMM
 from MonoNoteParameters import MonoNoteParameters
+import logging
 
 
 class FrameOutput(object):
@@ -54,18 +55,20 @@ class MonoNote(object):
 
     def process(self, pitch_contour_and_prob):
         
+        logging.warning('computing note state observation likelihoods...')
+        
         obs_probs = self.hmm.calculatedObsProb(pitch_contour_and_prob)
         obs_probs = self.hmm.normalize_obs_probs(obs_probs, pitch_contour_and_prob)
-        out = []
         obs_probs_T = obs_probs.T
-        path, scale = self.hmm.decodeViterbi(obs_probs_T) # transpose to have time t as first dimension 
+        path, _ = self.hmm.decodeViterbi(obs_probs_T) # transpose to have time t as first dimension 
 
+        out = [] # convert to a list of FrameOutput type
         for iFrame in range(len(path)):
             currPitch = -1.0
             stateKind = 0
 
             currPitch = self.hmm.par.minPitch + (path[iFrame]/self.hmm.par.nSPP) * 1.0/self.hmm.par.nPPS
-            stateKind = (path[iFrame]) % self.hmm.par.nSPP + 1
+            stateKind = (path[iFrame]) % self.hmm.par.nSPP + 1 # 1: attack, 2: sustain, 3: silence
 
             out.append(FrameOutput(iFrame, currPitch, stateKind))
 

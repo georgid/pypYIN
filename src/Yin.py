@@ -78,9 +78,9 @@ class Yin(object):
 
         yinBuffer = YinUtil.cumulativeDifference(yinBuffer ,self.m_yinBufferSize)
 
+        # calculate overall "probability" from peak probability, overall "probability" probSum seems never be used
         peakProbability = YinUtil.yinProb(yinBuffer, self.m_threshDistr, self.m_yinBufferSize, 0, 0)
 
-        # calculate overall "probability" from peak probability, overall "probability" probSum seems never be used
         rms = sqrt(YinUtil.sumSquare(input, 0, self.m_yinBufferSize)/self.m_yinBufferSize)
         yo = Yin.YinOutput(0.0, 0.0, rms)
 

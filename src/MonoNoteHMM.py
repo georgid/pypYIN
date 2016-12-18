@@ -56,6 +56,8 @@ class MonoNoteHMM(SparseHMM):
         '''
         calculate the obs probability for all states of one pitch
         
+        refer to section 3.2. equation (1)
+        
         Parameters
         ---------------
         pitch_contour_and_prob: nd.array, shape=(t,2)
@@ -70,16 +72,16 @@ class MonoNoteHMM(SparseHMM):
        
         pitches = pitch_contour_and_prob[:,0]
         indices_non_zero_pitch = np.where(pitches > 0)[0]
-        factor = np.power(pitches[indices_non_zero_pitch], self.par.yinTrust)
+        factorTrust = np.power(pitch_contour_and_prob[indices_non_zero_pitch,1], self.par.yinTrust) # how much pitch estimate is trusted
         
 #         if nCandidate == 0: # GEORGI: non-vocal frames with empty pitch should have zero prob?
 #             pIsPitched = 0
         obs_probs = np.zeros((self.par.n, pitches.shape[0]), dtype=np.float64)
-        for i in range(self.par.n): # non-silent states
-            if i % self.par.nSPP != 2: #  voiced states
+        for i in range(self.par.n): # loop though states
+            if i % self.par.nSPP != 2: #  attack and sustain states
                 
-                    obs_probs[i, :] = 1 # non-voiced get prob of 1
-                    obs_probs[i, indices_non_zero_pitch] = factor * self.pitchDistr[i].pdf(pitches[indices_non_zero_pitch]) # computation of actual pdf
+                    obs_probs[i, :] = 1 # zero pitched remain with const prob= 1
+                    obs_probs[i, indices_non_zero_pitch] = factorTrust * self.pitchDistr[i].pdf(pitches[indices_non_zero_pitch]) # computation of actual pdf
      
         return obs_probs
     
@@ -87,25 +89,27 @@ class MonoNoteHMM(SparseHMM):
         
     def normalize_obs_probs(self, obs_probs, pitch_contour_and_prob):
         '''
+        Seconds loop needed because easier to normalize by z
         Parameters
         ----------------
         obs_probs: nd.array, shape=(self.n,t)
         '''
-        probSums = np.sum(obs_probs,axis = 0) 
-        probSums[np.where(probSums==0)] = 1 # prepare for division
+        z = np.sum(obs_probs,axis = 0)  # normalizing factor 
+        z[np.where(z==0)] = 1 # avoid  division by zero
        
         
         # the pitched probability, check Ryynanen's paper
-        pIsPitched = pitch_contour_and_prob[:,1] * (1-self.par.priorWeight) + self.par.priorPitchedProb * self.par.priorWeight
+        posteriorPichedProb = pitch_contour_and_prob[:,1] * (1-self.par.priorWeight) + self.par.priorPitchedProb * self.par.priorWeight
         
         ######### normalize 
         number_silent_states = self.par.nPPS * self.par.nS
         for i in range(self.par.n): 
             if i % self.par.nSPP != 2: # non-silent states
-                    obs_probs[i] = pIsPitched * obs_probs[i] / probSums 
-            else:  # the prob of silent states
+                    obs_probs[i,:] =  obs_probs[i,:] / z # normalize so that prob at non-voiced states sums up to 1
+                    obs_probs[i,:] *= posteriorPichedProb
+            else:  # the prob of silent states based on detectd pitch 
                
-                obs_probs[i] = (1-pIsPitched) / (number_silent_states)
+                obs_probs[i,:] = (1-posteriorPichedProb) / (number_silent_states)
 
         return obs_probs
 
