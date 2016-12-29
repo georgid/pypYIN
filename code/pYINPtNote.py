@@ -72,9 +72,7 @@ def pYINPtNote(filename1,fs=44100,frameSize=2048,hopSize=256):
         fs = pYinInst.process(frame)
 
     # calculate smoothed pitch and mono note
-    monoPitch = pYinInst.getSmoothedPitchTrack()
-
-    # output smoothed pitch track
+    monoPitch = pYinInst.getSmootdecodePitchTrack# output smoothed pitch track
     print 'pitch track'
     for ii in fs.m_oSmoothedPitchTrack:
         print ii.values

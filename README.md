@@ -2,7 +2,11 @@
 python pYIN
 
 A python version of pYIN of Matthias Mauch  
-Pitch and note tracking in monophonic audio
+Pitch and note tracking in monophonic audio  
+In this fork, two modifications are made: 
+- the transition model for note tracking is adapted to take into account positions in the musical measure/bar.  
+More specifically, we use likelihoods of note onset events (in `code.MonoNoteParameters.barPositionDist_Probs`), at different bar position (e.g. from 0 to 9, depending on the bar). In the original version the transition likelihood from silence to a following note attack state is distributed by the pitch difference from current to following note. NOTE: the sum of the transition likelihoods over all possible following notes is a constant `1-selfSilenceTransition`. In this version, on decoding, this constant is replaced for each time frame by the likelihood of the closest bar position from `barPositionDist_Probs`. This means essentially, that the same pitch-difference distribution scheme is kept, but scaled varyingly when close in time to a beginning of the bar (e.g. scaled more at downbeats and less else).  
+- the pYIN pitch tracking is replaced by melodia
 
 ## pYIN project page
 [https://code.soundsoftware.ac.uk/projects/pyin](https://code.soundsoftware.ac.uk/projects/pyin)
@@ -21,7 +25,7 @@ inputSampleRate:      sampling rate
 stepSize:             hopSize  
 blockSize:            frameSize  
 lowAmp(0,1):          RMS of audio frame under lowAmp will be considered non voiced  
-onsetSensitivity:     high value means note is easily be separated into two notes if low amplitude is presented.  
+onsetSensitivity:     high value means note is easily separated into two notes if low amplitude is presented.  
 pruneThresh(second):  discards notes shorter than this threshold
 
 ### Output:
@@ -30,7 +34,8 @@ Smoothed pitch track
 Pitch tracks of transcribed notes in MIDI note number  
 
 ### Other issues:
-See demo.py
+See demo.py  
+To set bar-postion-aware scheme, set the parameter WITH_BAR_POSITIONS = 1
 
 ## License
  Copyright (C) 2015  Music Technology Group - Universitat Pompeu Fabra  

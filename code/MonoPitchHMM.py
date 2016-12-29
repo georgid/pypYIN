@@ -45,7 +45,7 @@ import numpy as np
 class MonoPitchHMM(SparseHMM):
 
     def __init__(self):
-        SparseHMM.__init__(self)
+        SparseHMM.__init__(self,1)
         self.m_minFreq = 61.735
         self.m_nBPS = 5
         self.m_nPitch = 0
@@ -118,19 +118,19 @@ class MonoPitchHMM(SparseHMM):
                 # from voiced to voiced
                 self.fromIndex = np.append(self.fromIndex, np.uint64(iPitch))
                 self.toIndex = np.append(self.toIndex, np.uint64(i))
-                self.transProb = np.append(self.transProb, np.float64(weights[i-minNextPitch] / weightSum * self.m_selfTrans))
+                self.transProbs[0] = np.append(self.transProbs[0], np.float64(weights[i-minNextPitch] / weightSum * self.m_selfTrans))
 
                 # from voiced to non voiced
                 self.fromIndex = np.append(self.fromIndex, np.uint64(iPitch))
                 self.toIndex = np.append(self.toIndex, np.uint64(i+self.m_nPitch))
-                self.transProb = np.append(self.transProb, np.float64(weights[i-minNextPitch] / weightSum * (1-self.m_selfTrans)))
+                self.transProbs[0] = np.append(self.transProbs[0], np.float64(weights[i-minNextPitch] / weightSum * (1-self.m_selfTrans)))
 
                 # from non voiced to non voiced
                 self.fromIndex = np.append(self.fromIndex, np.uint64(iPitch+self.m_nPitch))
                 self.toIndex = np.append(self.toIndex, np.uint64(i+self.m_nPitch))
-                self.transProb = np.append(self.transProb, np.float64(weights[i-minNextPitch] / weightSum * self.m_selfTrans))
+                self.transProbs[0] = np.append(self.transProbs[0], np.float64(weights[i-minNextPitch] / weightSum * self.m_selfTrans))
 
                 # from non voiced to voiced
                 self.fromIndex = np.append(self.fromIndex, np.uint64(iPitch+self.m_nPitch))
                 self.toIndex = np.append(self.toIndex, np.uint64(i))
-                self.transProb = np.append(self.transProb, np.float64(weights[i-minNextPitch] / weightSum * (1-self.m_selfTrans)))
+                self.transProbs[0] = np.append(self.transProbs[0], np.float64(weights[i-minNextPitch] / weightSum * (1-self.m_selfTrans)))

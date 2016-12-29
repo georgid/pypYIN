@@ -42,15 +42,21 @@ from SparseHMM import SparseHMM
 from MonoNoteParameters import MonoNoteParameters
 from math import *
 from scipy.stats import norm
-from joblib.numpy_pickle_utils import np
 import sys
+import logging
+
+
 
 class MonoNoteHMM(SparseHMM):
-    def __init__(self):
-        SparseHMM.__init__(self)
-        self.par = MonoNoteParameters()
+    def __init__(self, with_bar_dependent_probs, hopTime):
+        self.with_bar_dependent_probs = with_bar_dependent_probs
+        self.par = MonoNoteParameters(with_bar_dependent_probs, hopTime)
+        if with_bar_dependent_probs: # list of trans matrices
+            SparseHMM.__init__(self, self.par.barPositionDistance_Probs.shape[0], self.par.barPositionDistance_Probs.shape[1] + 1 ) # last is limit distance
+        else: # only one trans matrix
+            SparseHMM.__init__(self, 1,1 )
         self.pitchDistr = []
-        self.build()
+        self.build(with_bar_dependent_probs)
 
     def calculatedObsProb(self, pitch_contour_and_prob):
         '''
@@ -119,7 +125,7 @@ class MonoNoteHMM(SparseHMM):
     def getFrequency(self, index):
         return 440 * pow(2.0, (self.pitchDistr[index].mean()-69)/12)
 
-    def build(self):
+    def build(self, with_bar_dependent_probs):
         # the states are organised as follows:
         # 0-2. lowest pitch
         #    0. attack state
@@ -129,7 +135,7 @@ class MonoNoteHMM(SparseHMM):
         #    3. attack state
         #    ...
 
-        # observation distributions
+        ################## observation distributions
         for iState in range(self.par.n):
             self.pitchDistr.append(norm(loc=0, scale=1))
             if iState % self.par.nSPP == 2: # silent state starts tracking
@@ -143,61 +149,83 @@ class MonoNoteHMM(SparseHMM):
             self.pitchDistr[index] = norm(loc=mu, scale=self.par.sigmaYinPitchAttack)
             self.pitchDistr[index+1] = norm(loc=mu, scale=self.par.sigmaYinPitchStable)
             self.pitchDistr[index+2] = norm(loc=mu, scale=1.0) # dummy
-
+        
+        
+        ################### set sparse transition probabilities self.transProbs
         # this might be the note transition probability function
         noteDistanceDistr = norm(loc=0, scale=self.par.sigma2Note)
 
-        for iPitch in range(self.par.nS * self.par.nPPS):
-            # loop through all notes and set sparse transition probabilities
+        
+        logging.warning('building transition matrix...')    
+        for iPitch in range(self.par.nS * self.par.nPPS): # loop through all notes and set sparse transition probabilities self.transProbs
             index = iPitch * self.par.nSPP
 
             # transitions from attack state
             self.fromIndex = np.append(self.fromIndex, np.uint64(index))
             self.toIndex = np.append(self.toIndex, np.uint64(index))
-            self.transProb = np.append(self.transProb, np.float64(self.par.pAttackSelftrans))
+            for iBarPos in range(self.transProbs.shape[0]):
+                for iDistance in range(self.transProbs.shape[1]): 
+                    self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(self.par.pAttackSelftrans))
 
             self.fromIndex = np.append(self.fromIndex, np.uint64(index))
             self.toIndex = np.append(self.toIndex, np.uint64(index+1))
-            self.transProb = np.append(self.transProb, np.float64(1-self.par.pAttackSelftrans))
+            for iBarPos in range(self.transProbs.shape[0]):
+                for iDistance in range(self.transProbs.shape[1]): 
+                    self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(1-self.par.pAttackSelftrans))
 
             # transitions from stable state
             self.fromIndex = np.append(self.fromIndex, np.uint64(index+1))
             self.toIndex = np.append(self.toIndex, np.uint64(index+1)) # to itself
-            self.transProb = np.append(self.transProb, np.float64(self.par.pStableSelftrans))
+            for iBarPos in range(self.transProbs.shape[0]):
+                for iDistance in range(self.transProbs.shape[1]): 
+                    self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(self.par.pStableSelftrans))
 
             self.fromIndex = np.append(self.fromIndex, np.uint64(index+1))
             self.toIndex = np.append(self.toIndex, np.uint64(index+2)) # to silent
-            self.transProb = np.append(self.transProb, np.float64(self.par.pStable2Silent))
+            for iBarPos in range(self.transProbs.shape[0]):
+                for iDistance in range(self.transProbs.shape[1]): 
+                    self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(self.par.pStable2Silent))
 
             # the "easy" transitions from silent state
             self.fromIndex = np.append(self.fromIndex, np.uint64(index+2))
             self.toIndex = np.append(self.toIndex, np.uint64(index+2))
-            self.transProb = np.append(self.transProb, np.float64(self.par.pSilentSelftrans))
-
+            for iBarPos in range(self.transProbs.shape[0]):
+                for iDistance in range(self.transProbs.shape[1]-1): 
+                    self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(1 - self.par.barPositionDistance_Probs[iBarPos, iDistance] ) ) # prob. of wait in silence 
+                self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1], np.float64(self.par.pSilentSelftrans ) ) # last distance is the default fixed silence self transition
+            
             # the more complicated transitions from the silent
             # this prob only applies to transitions from silent to non silent
             # which is the note transition
             probSumSilent = 0.0
 
             tempTransProbSilent = []
-            for jPitch in range(self.par.nS * self.par.nPPS):
+            for jPitch in range(self.par.nS * self.par.nPPS): # compute fromIndex, toIndex and tempTransProbsSilent: the weighted from silent to non-silent
                 fromPitch = iPitch
                 toPitch = jPitch
                 semitoneDistance = fabs(fromPitch - toPitch) * 1.0 / self.par.nPPS
 
                 if semitoneDistance == 0 or \
-                        (semitoneDistance > self.par.minSemitoneDistance and semitoneDistance < self.par.maxJump):
+                        (semitoneDistance > self.par.minSemitoneDistance and semitoneDistance < self.par.maxJump): # store only transitions to states, which are within meaningful range 
 
                     toIndex = jPitch * self.par.nSPP  # note attack index
 
-                    tempWeightSilent = noteDistanceDistr.pdf(semitoneDistance)
+                    tempWeightSilent = noteDistanceDistr.pdf(semitoneDistance) # transitions according to note distance form weights that sum to one
                     probSumSilent += tempWeightSilent
 
                     tempTransProbSilent.append(tempWeightSilent)
 
                     self.fromIndex = np.append(self.fromIndex, np.uint64(index+2))  # from a silence
                     self.toIndex = np.append(self.toIndex, np.uint64(toIndex))  # to an attack
-
-            for i in range(len(tempTransProbSilent)):
-                self.transProb = np.append(self.transProb,
-                                          np.float64(((1-self.par.pSilentSelftrans) * tempTransProbSilent[i]/probSumSilent)))
+            
+            for i in range(len(tempTransProbSilent)): # append to transProbs  the computed  tempProbSilent
+                givenPitchTransProbSilent = tempTransProbSilent[i]/probSumSilent
+                givenPitch_barPositionDistance_Probs = self.par.barPositionDistance_Probs  * givenPitchTransProbSilent # bar-position probs weighted by transitions for transition towards given pitch
+                
+                for iBarPos in range(self.transProbs.shape[0]):
+                    for iDistance in range(self.transProbs.shape[1]-1): 
+                        self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance],
+                                          np.float64( givenPitch_barPositionDistance_Probs[iBarPos, iDistance]) ) 
+                    # last distance is the default fixed silence-to-note transition
+                    self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1],
+                                          np.float64( (1-self.par.pSilentSelftrans) * givenPitchTransProbSilent  ) ) 

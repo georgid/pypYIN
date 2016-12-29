@@ -40,12 +40,28 @@
 import numpy as np
 from math import *
 import logging
+import os
+import sys
+
+parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir,    os.path.pardir)) 
+Alignment_URI = os.path.join(parentDir, 'AlignmentDuration') 
+
+if Alignment_URI not in sys.path:
+    sys.path.append(Alignment_URI)
+    
+from src.onsets.OnsetDetector import getDistFromEvent
 
 class SparseHMM(object):
 
-    def __init__(self):
+    def __init__(self, num_rows_transmatrix, num_columns_transmatrix):
         self.init = np.array([], dtype=np.float64)
-        self.transProb = np.array([], dtype=np.float64)
+
+   
+        self.transProbs =  np.empty([num_rows_transmatrix, num_columns_transmatrix], object)  # a two-dimensional array of trans probs, has shape (1,0) if no bar-positions considered
+        for i in range(num_rows_transmatrix):
+            for j in range(num_columns_transmatrix):
+                self.transProbs[i,j] = np.array([], dtype=np.float64)
+                
         self.fromIndex = np.array([], dtype=np.uint64)
         self.toIndex = np.array([],dtype=np.uint64)
 
@@ -53,12 +69,15 @@ class SparseHMM(object):
         # to be overloaded
         return data
 
+    
     def decodeViterbi(self, obsProb):
         '''
         
         Parameters
         ----------------
-        obsProb: n: shape(num_times, num_states)
+        obsProb: nd.array: shape(num_times, num_states)
+        frame_beats: nd.array, shape(num_times,)
+            the annotated beat number per each frame
         '''
         logging.warning('recognizing note states...')
 
@@ -67,8 +86,8 @@ class SparseHMM(object):
         nState = len(self.init)
         nFrame = len(obsProb)
 
-        # check for consistency
-        nTrans = len(self.transProb)
+        # any transition prob matrix
+        nTrans = len(self.transProbs[0,0])
 
         # declaring variables
         scale = np.array([], dtype=np.float64)
@@ -94,14 +113,23 @@ class SparseHMM(object):
             logging.warning('decoding time frame {} out of {}...'.format(iFrame, nFrame))
             deltasum = 0
             psi = psi + [np.zeros(nState, dtype=np.int)]
-
+            if self.with_bar_dependent_probs:     # use fixed transition probs from silence 
+                onsetDist, whichFrame = getDistFromEvent( self.barPositions[:,0], iFrame)
+                if self.par.with_bar_dependent_probs:
+                    whichDist = min(self.par.DISTANCES, onsetDist) # if farther apart from DISTANCE, use default fixed transition from  silence
+                else:
+                    whichDist = self.par.DISTANCES # no bars, default model
+                transProb = self.transProbs[self.barPositions[whichFrame,1], whichDist] 
+            else:                       # use varying probs (dependent on bar-position)
+                transProb = self.transProbs[0,0] 
+            
             # calculate best previous state for every current state
 
             # this is the "sparse" loop
             for iTrans in range(nTrans):
                 fromState = self.fromIndex[iTrans]
                 toState = self.toIndex[iTrans]
-                currentTransProb = self.transProb[iTrans]
+                currentTransProb = transProb[iTrans]
 
                 currentValue = oldDelta[fromState] * currentTransProb
                 if (currentValue > delta[toState]):  # to find the maximum

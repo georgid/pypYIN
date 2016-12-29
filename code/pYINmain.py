@@ -44,6 +44,7 @@ from Yin import *
 from YinUtil import RMS
 from MonoPitch import MonoPitch
 from MonoNote import MonoNote
+from demo import WITH_MELODIA
 PITCH_PROB = 0.9 
 
 class Feature(object):
@@ -183,7 +184,7 @@ class PyinMain(object):
 
         return self.fs
 
-    def getSmoothedPitchTrack(self):
+    def decodePitchTrack(self):
         '''
         1. decode pitch with Viterbi
         
@@ -197,8 +198,6 @@ class PyinMain(object):
         mp = MonoPitch()
         mpOut = mp.process(self.m_pitchProb)
         
-        self.setDecodedMonoPitch(mpOut) # store it as a field
-
         return mpOut
    
     def setDecodedMonoPitch(self, mpOut):
@@ -218,15 +217,22 @@ class PyinMain(object):
             self.fs.m_oSmoothedPitchTrack.append(copy.copy(f))
     
 
-    def getRemainingFeatures(self, pitch_contour):
+    def getRemainingFeatures(self, pitch_contour, with_bar_positions, bar_position_ts, bar_labels, hop_time):
         '''
-        decode note states
+        decode note states using MonoNote probabilistic model
         
         
         Parameters
+        ----------------------
         pitch_contour :
             only pitch values
+        
+        Returns
         -----------------------
+        feature set:
+            updated with  m_oMonoNoteOut: array of FrameOutput
+        MIDI_pitch_contour:
+              midi pitch
         '''
         
         MIDI_pitch_contour_and_prob = np.zeros((len(pitch_contour),2)) 
@@ -237,14 +243,18 @@ class PyinMain(object):
 
 
         ############ convert to MIDI scale
-        mn = MonoNote()
+        mn = MonoNote(with_bar_positions, hop_time) # if frame_beat_annos is set, use bar-position dependent annotation   
         
+#         import matplotlib.pyplot as plt
+#         plt.plot(mn.hmm.transProbs[0,1][30*75 + 5: 31*75 +5])
+#         plt.show()
+
         for iFrame in range(len(pitch_contour)):
             if pitch_contour[iFrame] > 0:  # zero or negative value (silence) remains with 0 probability and negative frequency in Herz
                 MIDI_pitch_contour_and_prob[iFrame][0] = 12 * log(pitch_contour[iFrame]/440.0)/log(2.0) + 69
                 MIDI_pitch_contour_and_prob[iFrame][1] = PITCH_PROB # constant voicing probability = 0.9
         
-        mnOut = mn.process(MIDI_pitch_contour_and_prob) # decode note states Viterbi
+        mnOut = mn.process(MIDI_pitch_contour_and_prob, bar_position_ts, bar_labels, hop_time) # decode note states Viterbi
 
         self.fs.m_oMonoNoteOut = mnOut # array of FrameOutput 
         return self.fs, MIDI_pitch_contour_and_prob[:,0] 
@@ -279,14 +289,17 @@ class PyinMain(object):
         notePitchTrack = np.array([], dtype=np.float32) # collects pitches for one note at a time
         
         for iFrame in range(nFrame):
+            if not WITH_MELODIA:
+                is_samepitch_onset = (iFrame >= nFrame-2 ) \
+                or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity) # onset at same pitch if pitch amplitude changes above a threshold 
+            
             isVoiced = mnOut[iFrame].noteState < 3 \
-            and MIDI_pitch_contour[iFrame] > 0 \
-            and (iFrame >= nFrame-2 )
-# not use RMS for now because no rms is set in melodia
-#             or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity)) # change based on pitch amplitude 
-
+            and MIDI_pitch_contour[iFrame] > 0
+#             and is_samepitch_onset
+            # not use RMS for now because no rms is set in melodia
+            
             if isVoiced and iFrame != nFrame-1: # voiced pitch frame
-                if oldIsVoiced == 0: # note onset
+                if oldIsVoiced == 0: # onset only if previous frame was unvoiced
                     self.fs.onsetFrames.append( iFrame )
                     
                 MIDI_pitch = MIDI_pitch_contour[iFrame]
@@ -310,3 +323,4 @@ class PyinMain(object):
             oldIsVoiced = isVoiced
 
         return self.fs
+    
