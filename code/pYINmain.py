@@ -44,7 +44,6 @@ from Yin import *
 from YinUtil import RMS
 from MonoPitch import MonoPitch
 from MonoNote import MonoNote
-from demo import WITH_MELODIA
 PITCH_PROB = 0.9 
 
 class Feature(object):
@@ -118,8 +117,10 @@ class PyinMain(object):
         self.m_level = np.array([], dtype=np.float32)
 
     def process(self, inputBuffers):
-
-        dInputBuffers = np.zeros((self.m_blockSize,), dtype=np.float64)
+        '''
+        inputBuffers is samples for one frames
+        '''
+        dInputBuffers = np.zeros((self.m_blockSize,), dtype=np.float64) # make sure it is zero-padded at end
         for i in range(self.m_blockSize):
             dInputBuffers[i] = inputBuffers[i]
 
@@ -259,12 +260,12 @@ class PyinMain(object):
         self.fs.m_oMonoNoteOut = mnOut # array of FrameOutput 
         return self.fs, MIDI_pitch_contour_and_prob[:,0] 
 
-    def postprocessPitchTracks(self, MIDI_pitch_contour, mnOut):        
+    def postprocessPitchTracks(self, MIDI_pitch_contour, mnOut, with_same_pitch_onsets):        
         '''
         
         postprocessing of MIDI_pitch noteStatesToPitch
-        filter  onsets and store them as fields in  self.fs.onsetFrames
-        filter also MIDI_pitch tracks per note (notePitchTracks) and median pitches
+        1. filter  onsets and store them as fields in  self.fs.onsetFrames
+        2.  filter also MIDI_pitch tracks per note (notePitchTracks) and median pitches
         
         Parameters
         --------------------------
@@ -288,15 +289,16 @@ class PyinMain(object):
         
         notePitchTrack = np.array([], dtype=np.float32) # collects pitches for one note at a time
         
+
+                
         for iFrame in range(nFrame):
-            if not WITH_MELODIA:
-                is_samepitch_onset = (iFrame >= nFrame-2 ) \
-                or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity) # onset at same pitch if pitch amplitude changes above a threshold 
             
-            isVoiced = mnOut[iFrame].noteState < 3 \
-            and MIDI_pitch_contour[iFrame] > 0
-#             and is_samepitch_onset
-            # not use RMS for now because no rms is set in melodia
+            isVoiced = mnOut[iFrame].noteState < 3 and MIDI_pitch_contour[iFrame] > 0
+            if with_same_pitch_onsets: 
+                is_samepitch_onset = (iFrame >= nFrame-3 ) \
+                    or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity) # onset at same pitch if pitch amplitude changes above a threshold 
+                isVoiced = isVoiced and is_samepitch_onset
+            
             
             if isVoiced and iFrame != nFrame-1: # voiced pitch frame
                 if oldIsVoiced == 0: # onset only if previous frame was unvoiced

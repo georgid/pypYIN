@@ -113,18 +113,16 @@ class SparseHMM(object):
             logging.warning('decoding time frame {} out of {}...'.format(iFrame, nFrame))
             deltasum = 0
             psi = psi + [np.zeros(nState, dtype=np.int)]
-            if self.with_bar_dependent_probs:     # use fixed transition probs from silence 
+            if self.with_bar_dependent_probs:     # use varying probs (dependent on bar-position)
                 onsetDist, whichFrame = getDistFromEvent( self.barPositions[:,0], iFrame)
-                if self.par.with_bar_dependent_probs:
-                    whichDist = min(self.par.DISTANCES, onsetDist) # if farther apart from DISTANCE, use default fixed transition from  silence
-                else:
-                    whichDist = self.par.DISTANCES # no bars, default model
-                transProb = self.transProbs[self.barPositions[whichFrame,1], whichDist] 
-            else:                       # use varying probs (dependent on bar-position)
-                transProb = self.transProbs[0,0] 
+                whichDist = min(self.par.DISTANCES, onsetDist) # if farther apart from DISTANCE, use default fixed transition from  silence
+                whichBar = self.barPositions[whichFrame,1]
+            else:
+                whichDist = 0 # no bars, use fixed transition probs from silence 
+                whichBar = 0 # bar does not matter 
+            transProb = self.transProbs[whichBar, whichDist] # select trans probs at each frame
             
             # calculate best previous state for every current state
-
             # this is the "sparse" loop
             for iTrans in range(nTrans):
                 fromState = self.fromIndex[iTrans]

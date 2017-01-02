@@ -36,8 +36,10 @@
  * in Proceedings of the First International Conference on Technologies for
  * Music Notation and Representation, 2015.
 '''
-WITH_BAR_POSITIONS = 0
-WITH_MELODIA = True
+WITH_BAR_POSITIONS = 1
+WITH_MELODIA = 1
+WITH_ONSETS_SAME_PITCH = 1
+
 fs = 44100
 frameSize = 2048
 hopSize = 256
@@ -52,6 +54,7 @@ srcpath = dir+'/code'
 if srcpath not in sys.path:
     sys.path.append(srcpath)
 from MonoNote import frame_to_ts
+import YinUtil
 
 import pYINmain
 import essentia.standard as ess
@@ -68,6 +71,7 @@ path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
 if path_Alignment_duration not in sys.path:
         sys.path.append(path_Alignment_duration)
 from src.align.FeatureExtractor import extractPredominantPitch
+import math
 
 def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst):
     '''
@@ -86,7 +90,7 @@ def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst):
         audio = ess.MonoLoader(filename = filename1, sampleRate = fs)()
         for frame in ess.FrameGenerator(audio, frameSize=frameSize, hopSize=hopSize):
             featureSet = pYinInst.process(frame)
-         
+            
         ##### calculate smoothed pitch and mono note
         estimatedPitch = pYinInst.decodePitchTrack() # this is just pitch 
         ts = [] ### generate timestamps
@@ -105,7 +109,20 @@ def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst):
     estimatedPitch_vocal = estimatedPitch_andTs_vocal[:,1]
     return estimatedPitch_vocal
 
-
+def calc_rms(pYINinstnce, filename1):
+    '''
+    copied from pYINMain.pYIN. done here as  a separate func to call when using melodia
+    '''        
+    audio = ess.MonoLoader(filename = filename1, sampleRate = fs)()
+    
+    for frame in ess.FrameGenerator(audio, frameSize=pYINinstnce.m_blockSize, hopSize=pYINinstnce.m_stepSize):
+# this might be needed to ensure a frame has enough entries for pYINinstnce.m_yin.m_yinBufferSize
+#              dInputBuffers = np.zeros((self.m_blockSize,), dtype=np.float64) # make sure it is zero-padded at end
+#         for i in range(self.m_blockSize):
+#             dInputBuffers[i] = inputBuffers[i]
+        
+        rms = math.sqrt(YinUtil.sumSquare(frame, 0, pYINinstnce.m_yin.m_yinBufferSize)/pYINinstnce.m_yin.m_yinBufferSize)
+        pYINinstnce.m_level = np.append(pYINinstnce.m_level, rms)
 
 def load_beat_anno(beats_URI):
     '''
@@ -179,6 +196,8 @@ if __name__ == "__main__":
                    lowAmp = 0.25, onsetSensitivity = 0.7, pruneThresh = 0.1)
 
 
+    if WITH_MELODIA: # calculate RMS, which is done in pYIN pitch
+        calc_rms(pYinInst, filename1)
 
     
     ########### extract  pitch from polyphonic with sercan's melodia
@@ -200,9 +219,8 @@ if __name__ == "__main__":
     print noteStates
 
 
-
     
-    featureSet = pYinInst.postprocessPitchTracks(MIDI_pitch_contour, featureSet.m_oMonoNoteOut)  # postprocess to get onsets
+    featureSet = pYinInst.postprocessPitchTracks(MIDI_pitch_contour, featureSet.m_oMonoNoteOut, WITH_ONSETS_SAME_PITCH)  # postprocess to get onsets
 
 
     
@@ -213,7 +231,8 @@ if __name__ == "__main__":
         extension =  '.onsets.tony'
     if not WITH_MELODIA:
             extension += '.pYINPitch'
-    extension += '.no_postprocessing'
+    if not WITH_ONSETS_SAME_PITCH:
+        extension += '.no_postprocessing'
     
     filename1_detected_onsets = filename1[:-4] + extension
     
