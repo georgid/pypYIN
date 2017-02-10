@@ -218,7 +218,7 @@ class PyinMain(object):
             self.fs.m_oSmoothedPitchTrack.append(copy.copy(f))
     
 
-    def getRemainingFeatures(self, pitch_contour, with_bar_positions, bar_position_ts, bar_labels, hop_time):
+    def getRemainingFeatures(self, pitch_contour, with_bar_positions, bar_position_ts, bar_labels, hop_time, usul_type):
         '''
         decode note states using MonoNote probabilistic model
         
@@ -244,7 +244,7 @@ class PyinMain(object):
 
 
         ############ convert to MIDI scale
-        mn = MonoNote(with_bar_positions, hop_time) # if frame_beat_annos is set, use bar-position dependent annotation   
+        mn = MonoNote(with_bar_positions, hop_time, usul_type) # if frame_beat_annos is set, use bar-position dependent annotation   
         
 #         import matplotlib.pyplot as plt
 #         plt.plot(mn.hmm.transProbs[0,1][30*75 + 5: 31*75 +5])

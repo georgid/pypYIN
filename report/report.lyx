@@ -1,0 +1,724 @@
+#LyX 2.2 created this file. For more info see http://www.lyx.org/
+\lyxformat 508
+\begin_document
+\begin_header
+\save_transient_properties true
+\origin unavailable
+\textclass article
+\begin_preamble
+\usepackage{multicol}
+\setcounter{secnumdepth}{3}
+\end_preamble
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman "default" "default"
+\font_sans "default" "default"
+\font_typewriter "default" "default"
+\font_math "auto" "auto"
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100 100
+\font_tt_scale 100 100
+\graphics default
+\default_output_format default
+\output_sync 1
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_package amsmath 1
+\use_package amssymb 1
+\use_package cancel 1
+\use_package esint 1
+\use_package mathdots 1
+\use_package mathtools 1
+\use_package mhchem 1
+\use_package stackrel 1
+\use_package stmaryrd 1
+\use_package undertilde 1
+\cite_engine basic
+\cite_engine_type default
+\biblio_style plain
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\justification true
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 10page%
+\topmargin 10theight%
+\rightmargin 10page%
+\bottommargin 10pheight%
+\secnumdepth 2
+\tocdepth 2
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Abstract
+The goal of this study is to detect onsets of singing voice in polyphonic
+ audio recordings from Turkish Makam singing.
+ We want to show that tracking simultaneously in a probabilistic way the
+ current position in a metrical cycle (usul) and vocal note onsets could
+ improve the vocal onset detection accuracy.
+\end_layout
+
+\begin_layout Section
+Introduction
+\end_layout
+
+\begin_layout Standard
+TODO:
+\end_layout
+
+\begin_layout Section
+Related Work
+\end_layout
+
+\begin_layout Standard
+The automatic detection of vocal non-vocal is usually performed in the context
+ of singing voice transcription.
+\end_layout
+
+\begin_layout Standard
+In the case of monophonic singing the more successful approaches are based
+ on discontinuities in pitch contours [McNab].
+ The idea is usually referred to as ‘island building’ groups temporally
+ candidate onsets and has been the basis for other works.
+ 
+\end_layout
+
+\begin_layout Standard
+In the case when background instruments are present, essential first step
+ is to extract the predominant pitch curve.
+ A probabilistic note HMM is presented in [Ryanen], where a note has 3 states:
+ attack(onset), steady state and silent state.
+ The transition probabilities are learned from data.
+ Later this approach has been extended by adding a separate HMM for regions
+ of transition between the steady notes [Krige].
+ Recently [Mauch] suggested to compact the musical knowledge into rules
+ as a way to describe the observation and transition likelihoods, instead
+ of training them.
+ Although being conceptually capable of tracking onsets in singing voice
+ audio with accompaniments, these approaches were tested only on a cappella
+ singing.
+\end_layout
+
+\begin_layout Standard
+In recent work a flamenco-specific approach has been suggested [Kroher].
+ In flamenco some musical aspects evince significant deviations from the
+ principles of Western music style.
+ From this perspective the authors suggest a tradition-specific approach.
+\end_layout
+
+\begin_layout Standard
+As a primary step of the note transcription stage, notes are segmented by
+ a
+\end_layout
+
+\begin_layout Standard
+set of flamenco-specific onset detection rules, based on pitch contour and
+ volume characteristics.
+ Varying only one parameter - the Gaussian filter - we showed that using
+ this method notes from makam singing can be segmented with reasonable recall
+ of 75 and 65 % in the monophonic and polyphonic case [Dzhambazov].
+\end_layout
+
+\begin_layout Standard
+
+\color red
+In [Kroher] Vocal note onsets are two types: with a change of pitch and
+ at the same pitch.
+ 
+\end_layout
+
+\begin_layout Section
+Dataset
+\end_layout
+
+\begin_layout Standard
+TODO
+\end_layout
+
+\begin_layout Section
+Approach
+\end_layout
+
+\begin_layout Standard
+A hidden Markov model (HMM) detects simultaneously beat and vocal note onsets.
+ It is assumed to emit an onset feature that distinguises beats frames,
+ and in parallel a pitch contour, from which the note onsets are determined.
+ The vocal 
+\emph on
+Vs
+\emph default
+ non-vocal detection is done as a preprocessing step.
+ The knowledge if a frame is vocal or not is integrated in the pitch observation
+ model.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Approach overview
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Model description
+\end_layout
+
+\begin_layout Standard
+We modify the bar-pointer model presented in [Holzapfel] by adding a hidden
+ state for vocal note state, which depends on the current note position.
+ The model is represented as DynamicBayesian Network in Fig.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "dbn"
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float figure
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\begin_inset Graphics
+	filename bar_pointer_and_notes_graph.jpg
+	lyxscale 3
+	width 30theight%
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+DBN for the simultaneous beat and note onset detection
+\end_layout
+
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "dbn"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsubsection
+Hidden states
+\end_layout
+
+\begin_layout Standard
+The tempo and bar position states have the same state space as in [Holzapfel].
+ 
+\end_layout
+
+\begin_layout Paragraph
+Note state 
+\begin_inset Formula $n_{k}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The note states are a modified version of these suggested in [Mauch] for
+ note transcription: Each musical note is represented by three states: attack
+ (A), stable pitch part (S) and non-vocal state (N).
+ The non-vocal state covers time intervals where the singing voice is not
+ active, e.g.
+ instrumental interludes.
+ We let notes cover a range with distinct pitch from lowest MIDI pitch ..
+ Hz up to ..
+ Hz.
+ To reflect the fine-grained microtones in Makam, each MIDI pitch is further
+ divided into 3 sub-pitches, resulting in 
+\begin_inset Formula $n=207$
+\end_inset
+
+ notes with different pitch, each having the 3 note states decribed above.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{description}
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Rhythmic pattern 
+\begin_inset Formula $r_{k}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We use ony one rhythmic pattern per usul.
+\end_layout
+
+\begin_layout Standard
+All hidden states can be aglomerated into a mega-variable x with state space
+ the cartesian product of the individual state spaces.
+ 
+\end_layout
+
+\begin_layout Subsubsection
+Transition model
+\end_layout
+
+\begin_layout Standard
+The tempo transition probability 
+\begin_inset Formula $p(\dot{\phi_{k}}|\dot{\phi}_{k-1})$
+\end_inset
+
+ and bar position probability 
+\begin_inset Formula $p(\phi_{k}|\phi_{k-1})$
+\end_inset
+
+ are same as in [Hozapfel]
+\end_layout
+
+\begin_layout Paragraph
+Note transition probability 
+\begin_inset Formula $p(n_{k}|n_{k-1})$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let 
+\begin_inset Formula $p_{nn'}$
+\end_inset
+
+ be the probability for transition from non-vocal state 
+\begin_inset Formula $N_{n}$
+\end_inset
+
+ at note 
+\begin_inset Formula $n$
+\end_inset
+
+ to attack state 
+\begin_inset Formula $A_{n'}$
+\end_inset
+
+ of note 
+\begin_inset Formula $n'$
+\end_inset
+
+.
+ 
+\color red
+TODO: descibre p_nn
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color red
+is distributed according to the pitch difference from current to
+\end_layout
+
+\begin_layout Plain Layout
+
+\color red
+following note (some formula based on code?)
+\end_layout
+
+\end_inset
+
+.
+
+\color inherit
+ Let also 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $P_{sa}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ be a global probability of transiting from silence to any of the attack
+ states.
+ In [Mauch] the note transition is defined as:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+p(n_{k}|n_{k-1})=\begin{cases}
+\frac{p_{nn'}}{\sum_{n'}p_{nn'}}P_{sa} & n_{k-1}=N_{n,}\quad n_{k}=A_{n'}\\
+1-P_{sa} & n_{k-1}=n_{k}=N_{n}
+\end{cases}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+so that in the first case all transitions sum up to 
+\begin_inset Formula $P_{sa}$
+\end_inset
+
+, which is set to a constant 
+\begin_inset Formula $0.0001$
+\end_inset
+
+.
+ We modify 
+\begin_inset Formula $P_{sa}$
+\end_inset
+
+ to depend on current bar position 
+\begin_inset Formula $\phi_{k}$
+\end_inset
+
+:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P_{sa}=0.0001+[N_{0,\sigma}(d(\phi_{k}))]^{w}p_{b}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where 
+\begin_inset Formula $N_{0,\sigma}$
+\end_inset
+
+ is a normal distribution, assigning probability, depending on the time
+ interval to closest beat 
+\begin_inset Formula $d(\phi_{k})$
+\end_inset
+
+ for frame k.
+ We set 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ = 0.03 s.
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $w:$
+\end_inset
+
+ weights the contribution of beat
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $p_{b}:$
+\end_inset
+
+ probability of note onset co-occuring with the beat number b 
+\begin_inset Formula $\in$
+\end_inset
+
+ (0,|B|).
+ Note that in equation b is the number of the closest beat.
+\end_layout
+
+\begin_layout Standard
+This means essentially, that 
+\begin_inset Formula $p_{nn'}$
+\end_inset
+
+ is kept, but scaled varyingly when close in time to a beat (also scaled
+ more at down beats  than on beats with less accents).
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+impl (`code.MonoNoteParameters.barPositionDist_Probs`)
+\end_layout
+
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsubsection
+Beat Observation Model
+\end_layout
+
+\begin_layout Standard
+In this paper, we use the observation model proposed in [Holzapfel].
+ A Spectral Flux-like feature, 
+\begin_inset Formula $y^{f}$
+\end_inset
+
+, that represents note onsets, is extracted from the audio signal.
+\end_layout
+
+\begin_layout Subsubsection
+Pitch Observation
+\end_layout
+
+\begin_layout Standard
+We adopt the idea proposed in [Mauch] that a non-silent note state emits
+ pitch 
+\begin_inset Formula $y^{p}$
+\end_inset
+
+ according to normal distribution, centered around the note pitch.
+ The standard deviation for all stable states is set to ..., whereas the one
+ of the attack states is ...
+ The pitch contour is extracted with 
+\emph on
+PredominantMelodyMakam
+\emph default
+, whereby each frame 
+\begin_inset Formula $k$
+\end_inset
+
+ is assigned a pitch value and probability of being voiced 
+\begin_inset Formula $v_{k}$
+\end_inset
+
+ [Sercan]
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+IMPL: for now it is constant PROB_PITCHED=0.9 in code.pYINmain.PyinMain.getRemaining
+Features
+\end_layout
+
+\end_inset
+
+.
+ Since the voicing detection of the contour extraction method is not optimal
+ we ran a separate vocal detection method and assigned thus 0 for non-vocal
+ frames.
+\end_layout
+
+\begin_layout Standard
+The observation probability of non-silent states is normalized to sum to
+ 
+\begin_inset Formula $v_{k}$
+\end_inset
+
+ (unlike the original model which sums to a constant v).
+ Which leaves probability for each non-vocal state 
+\begin_inset Formula $\nicefrac{1-v_{k}}{n}$
+\end_inset
+
+.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+IMPL: posteriorPichedProb in code.MonoNoteHMM.MonoNoteHMM.normalize_obs_probs
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Learning model parameters
+\end_layout
+
+\begin_layout Subsubsection
+Observation models
+\end_layout
+
+\begin_layout Standard
+TODO
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $p_{b}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Inference
+\end_layout
+
+\begin_layout Standard
+The optimal hidden state sequence 
+\begin_inset Formula $x_{1:K}$
+\end_inset
+
+ that incorporates the tempo, bar position and note state sequence 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+{m∗ 1:K,n∗1:K, r∗1:K}
+\end_layout
+
+\end_inset
+
+ can de estimated by combining the observation models:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+P(X_{1:K}|Y_{1:K}^{f},Y_{1:K}^{p})=P(X_{1})\Pi_{k=2}^{K}P(x_{k}|x_{k-1})P(y_{k}^{f}|x_{k})P(y_{k}^{p}|x_{k})
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We obtain 
+\begin_inset Formula $x_{1:K}$
+\end_inset
+
+ by decoding with the well-known Viterbi algorithm.
+ A vocal note onset is detected when the state path enters an attack note
+ state after being in non-vocal state.
+ 
+\end_layout
+
+\begin_layout Section
+Experiments
+\end_layout
+
+\begin_layout Subsection
+Evaluation metrics
+\end_layout
+
+\begin_layout Subsection
+Experiment 1: annotated beats
+\end_layout
+
+\begin_layout Subsection
+Experiment 2: full model
+\end_layout
+
+\begin_layout Section
+Concusions
+\end_layout
+
+\begin_layout Standard
+TODO
+\end_layout
+
+\end_body
+\end_document

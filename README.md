@@ -35,7 +35,7 @@ Pitch tracks of transcribed notes in MIDI note number
 
 ### Other issues:
 See demo.py  
-To set bar-postion-aware scheme, set the parameter WITH_BAR_POSITIONS = 1
+To set bar-position-aware scheme, set the parameter WITH_BAR_POSITIONS = 1
 
 ## License
  Copyright (C) 2015  Music Technology Group - Universitat Pompeu Fabra  

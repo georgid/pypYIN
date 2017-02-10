@@ -48,9 +48,9 @@ import logging
 
 
 class MonoNoteHMM(SparseHMM):
-    def __init__(self, with_bar_dependent_probs, hopTime):
+    def __init__(self, with_bar_dependent_probs, hopTime, usul_type):
         self.with_bar_dependent_probs = with_bar_dependent_probs
-        self.par = MonoNoteParameters(with_bar_dependent_probs, hopTime)
+        self.par = MonoNoteParameters(with_bar_dependent_probs, hopTime, usul_type)
         if with_bar_dependent_probs: # list of trans matrices
             SparseHMM.__init__(self, self.par.barPositionDistance_Probs.shape[0], self.par.barPositionDistance_Probs.shape[1] + 1 ) # last is limit distance
         else: # only one trans matrix
@@ -86,7 +86,7 @@ class MonoNoteHMM(SparseHMM):
         for i in range(self.par.n): # loop though states
             if i % self.par.nSPP != 2: #  attack and sustain states
                 
-                    obs_probs[i, :] = 1 # zero pitched remain with const prob= 1
+                    obs_probs[i, :] = 1 # attack or sustain emits zero pitch with prob= 1
                     obs_probs[i, indices_non_zero_pitch] = factorTrust * self.pitchDistr[i].pdf(pitches[indices_non_zero_pitch]) # computation of actual pdf
      
         return obs_probs
@@ -95,7 +95,8 @@ class MonoNoteHMM(SparseHMM):
         
     def normalize_obs_probs(self, obs_probs, pitch_contour_and_prob):
         '''
-        Seconds loop needed because easier to normalize by z
+        Seconds loop though probs because easier to normalize by z
+        
         Parameters
         ----------------
         obs_probs: nd.array, shape=(self.n,t)
@@ -104,18 +105,18 @@ class MonoNoteHMM(SparseHMM):
         z[np.where(z==0)] = 1 # avoid  division by zero
        
         
-        # the pitched probability, check Ryynanen's paper
+        #  probability of each frame being piched: combination of prior and assigned by pitch detection. check Ryynanen's paper
         posteriorPichedProb = pitch_contour_and_prob[:,1] * (1-self.par.priorWeight) + self.par.priorPitchedProb * self.par.priorWeight
         
         ######### normalize 
         number_silent_states = self.par.nPPS * self.par.nS
         for i in range(self.par.n): 
             if i % self.par.nSPP != 2: # non-silent states
-                    obs_probs[i,:] =  obs_probs[i,:] / z # normalize so that prob at non-voiced states sums up to 1
-                    obs_probs[i,:] *= posteriorPichedProb
-            else:  # the prob of silent states based on detectd pitch 
+                    obs_probs[i,:] =  obs_probs[i,:] / z 
+                    obs_probs[i,:] *= posteriorPichedProb # normalize so that prob at non-silent states sums up to posteriorPichedProb
+            else:  # silent states
                
-                obs_probs[i,:] = (1-posteriorPichedProb) / (number_silent_states)
+                obs_probs[i,:] = (1-posteriorPichedProb) / (number_silent_states) #  probs at silent states sums up to  1-posteriorPichedProb
 
         return obs_probs
 

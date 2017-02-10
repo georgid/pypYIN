@@ -114,13 +114,14 @@ class SparseHMM(object):
             deltasum = 0
             psi = psi + [np.zeros(nState, dtype=np.int)]
             if self.with_bar_dependent_probs:     # use varying probs (dependent on bar-position)
-                onsetDist, whichFrame = getDistFromEvent( self.barPositions[:,0], iFrame)
+                onsetDist, idx_frame_beat = getDistFromEvent( self.beatPositions[:,0], iFrame)
                 whichDist = min(self.par.DISTANCES, onsetDist) # if farther apart from DISTANCE, use default fixed transition from  silence
-                whichBar = self.barPositions[whichFrame,1]
+                which_beat = self.beatPositions[idx_frame_beat,1]
             else:
                 whichDist = 0 # no bars, use fixed transition probs from silence 
-                whichBar = 0 # bar does not matter 
-            transProb = self.transProbs[whichBar, whichDist] # select trans probs at each frame
+                which_beat = 0 # bar does not matter 
+            transProb = self.transProbs[which_beat, whichDist] # select trans probs at each frame
+
             
             # calculate best previous state for every current state
             # this is the "sparse" loop
