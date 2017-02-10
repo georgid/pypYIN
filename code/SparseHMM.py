@@ -121,6 +121,7 @@ class SparseHMM(object):
                 whichDist = 0 # no bars, use fixed transition probs from silence 
                 which_beat = 0 # bar does not matter 
             transProb = self.transProbs[which_beat, whichDist] # select trans probs at each frame
+
             
             # calculate best previous state for every current state
             # this is the "sparse" loop
