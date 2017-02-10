@@ -43,11 +43,18 @@ import os
 
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
-distance_in_secs = 0.058 # corresponds to around 10 frames with hopsize 256
+distance_in_secs = 0.058 # corresponds to around 10 frames when hopsize=256
 DELTA = 0.3
 
+# probabilities of note onset at a position for a bar: taken from figure 5 in http://www.rhythmos.org/MMILab-Andre_files/JNMR2014_a_Holzapfel.pdf
+note_onset_probs = dict()
+note_onset_probs['aksak'] = [0.92, 0.45, 0.8, 0.8, 0.92, 0.65, 0.85, 0.5, 0.6] 
+note_onset_probs['curcuna'] = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # curcuna
+note_onset_probs['duyek'] = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duyek
+# note_onset_probs['turkaksagi_ii'] = [] # TODO
+
 class MonoNoteParameters(object):
-    def __init__(self, with_bar_dependent_probs, hop_time):
+    def __init__(self, with_bar_dependent_probs, hop_time, usul_type):
         self.minPitch = 35
         self.DISTANCES  = int(round(distance_in_secs / hop_time)) # consider frames until this distance far from an event (unit: frames) 
         self.nPPS = 3  # 3 steps per semitone
@@ -71,9 +78,10 @@ class MonoNoteParameters(object):
         self.yinTrust = 0.1
         
         if with_bar_dependent_probs:
-            self.barPositionProbs = [0.92, 0.45, 0.8, 0.8, 0.92, 0.65, 0.85, 0.5, 0.6] # aksak. probabilities of note onset at a position for a bar: taken from figure 5 in http://www.rhythmos.org/MMILab-Andre_files/JNMR2014_a_Holzapfel.pdf
-#             self.barPositionProbs = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # curcuna
-#             self.barPositionProbs = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duyek
+            if usul_type in note_onset_probs.keys():
+                self.barPositionProbs = note_onset_probs[usul_type]
+            else:
+                sys.exit('there is no onset probability pattern defined for usul {} '.format(usul_type))
             self.barPositionDistance_Probs = np.zeros((len(self.barPositionProbs), self.DISTANCES))
             
             # create array here using smoothing by distance from event

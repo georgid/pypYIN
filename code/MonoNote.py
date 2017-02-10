@@ -51,9 +51,9 @@ class FrameOutput(object):
 
 class MonoNote(object):
 
-    def __init__(self, with_bar_dependent_probs, hopTime):
+    def __init__(self, with_bar_dependent_probs, hopTime, usul_type):
         self.with_bar_dependent_probs = with_bar_dependent_probs
-        self.hmm = MonoNoteHMM(with_bar_dependent_probs, hopTime)
+        self.hmm = MonoNoteHMM(with_bar_dependent_probs, hopTime, usul_type)
 
     def process(self, pitch_contour_and_prob, bar_position_ts, bar_labels, hop_time):
         '''
@@ -67,7 +67,7 @@ class MonoNote(object):
         obs_probs = self.hmm.normalize_obs_probs(obs_probs, pitch_contour_and_prob)
         obs_probs_T = obs_probs.T
         
-        self.create_barPositions(obs_probs_T, bar_position_ts, bar_labels, hop_time)
+        self.create_beatPositions(obs_probs_T, bar_position_ts, bar_labels, hop_time)
         path, _ = self.hmm.decodeViterbi(obs_probs_T) # transpose to have time t as first dimension 
 
         out = [] # convert to a list of FrameOutput type
@@ -82,22 +82,22 @@ class MonoNote(object):
 
         return out
     
-    def create_barPositions(self,obs_probs_T, bar_position_ts, bar_labels, hop_time):
+    def create_beatPositions(self,obs_probs_T, beat_position_ts, beat_labels, hop_time):
         '''
-        load beat annotaiton. and create bar position markers at frames  
-        creates MonoNoteHMM.barPositions: shape(time, 2); 
-            dimension 0: one if no bar pos, ele zero; 
+        load beat annotaiton. and create beat position markers at frames  
+        creates MonoNoteHMM.beatPositions: shape(time, 2); 
+            dimension 0: one if no bar pos, else zero; 
             dimension 1: bar pos label (form 0 to num_beats in usul)
         '''
         nFrames = obs_probs_T.shape[0]
-        self.hmm.barPositions = np.zeros((nFrames, 2)) # create result 
-        for bar_pos_ts, bar_label in zip(bar_position_ts, bar_labels ):
-            iFrame = ts_to_frame(bar_pos_ts, hop_time)
+        self.hmm.beatPositions = np.zeros((nFrames, 2)) # create output 
+        for beat_pos_ts, beat_label in zip(beat_position_ts, beat_labels ):
+            iFrame = ts_to_frame(beat_pos_ts, hop_time)
             if iFrame >= nFrames-1:
                 logging.warning('bar position ts beyond duration of audio... ignoring')
                 break
-            self.hmm.barPositions[iFrame,0] = 1
-            self.hmm.barPositions[iFrame,1] = int(bar_label) - 1 
+            self.hmm.beatPositions[iFrame,0] = 1
+            self.hmm.beatPositions[iFrame,1] = int(beat_label) - 1 
 
 def frame_to_ts(frame_number, hop_time):
     return float(hop_time * frame_number )
