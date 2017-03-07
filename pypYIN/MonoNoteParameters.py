@@ -39,33 +39,39 @@
 
 import numpy as np
 import sys
-import os
 
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
-distance_in_secs = 0.058 # corresponds to around 10 frames when hopsize=256
-DELTA = 0.3
+STEPS_PER_SEMITONE = 3
+NUM_SEMITONES = 69
+PITCH_PROB = 0.9 
+
+DISTANCES_IN_SEC = 0.058 # corresponds to around 10 frames when hopsize=256
+# DISTANCES_IN_SEC = 0
+DELTA = 0.3 # weight of importance of the note_onset_probs
 
 # probabilities of note onset at a position for a bar: taken from figure 5 in http://www.rhythmos.org/MMILab-Andre_files/JNMR2014_a_Holzapfel.pdf
 note_onset_probs = dict()
 note_onset_probs['aksak'] = [0.92, 0.45, 0.8, 0.8, 0.92, 0.65, 0.85, 0.5, 0.6] 
 note_onset_probs['curcuna'] = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # curcuna
+note_onset_probs['kapali_curcuna'] = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # same as curcuna
 note_onset_probs['duyek'] = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duyek
 # note_onset_probs['turkaksagi_ii'] = [] # TODO
 
 class MonoNoteParameters(object):
-    def __init__(self, with_bar_dependent_probs, hop_time, usul_type):
-        self.minPitch = 35
-        self.DISTANCES  = int(round(distance_in_secs / hop_time)) # consider frames until this distance far from an event (unit: frames) 
-        self.nPPS = 3  # 3 steps per semitone
-        self.nS = 69
+    def __init__(self, steps_per_semitone, number_semitones, with_bar_dependent_probs, hop_time, usul_type):
+        self.minPitch = 35 # in MIDI
+        self.DISTANCES  = int(round(DISTANCES_IN_SEC / hop_time)) # consider frames until this distance far from an event (unit: frames) 
+        self.nPPS = steps_per_semitone  #  steps per semitone
+        self.nS = number_semitones # number of semitones
         self.nSPP = 3  # states per pitch: attack, sustain, silence
         self.n = 0
         self.initPi = np.array([], dtype=np.float64)
         self.pAttackSelftrans = 0.9
         self.pStableSelftrans = 0.99
         self.pStable2Silent = 0.01
-        self.pSilentSelftrans = 0.9999
+#         self.pSilentSelftrans = 0.9999
+        self.pSilentSelftrans = 0.99999
         self.sigma2Note = 0.7
         self.maxJump = 13.0
         self.pInterSelftrans = 0.0

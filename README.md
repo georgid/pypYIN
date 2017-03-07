@@ -17,6 +17,7 @@ Scipy
 Essentia  
 
 ## Usage
+python demo.py /Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/ 92ef6776-09fa-41be-8661-025f9b33be4f
 
 ### Initialise:  
 Here are the parameters which need to be initialised before executing the main program:  

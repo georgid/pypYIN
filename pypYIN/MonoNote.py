@@ -43,6 +43,7 @@ import logging
 import sys
 import numpy as np
 
+
 class FrameOutput(object):
     def __init__(self, frameNumber, pitch, noteState):
         self.frameNumber = frameNumber
@@ -51,12 +52,24 @@ class FrameOutput(object):
 
 class MonoNote(object):
 
-    def __init__(self, with_bar_dependent_probs, hopTime, usul_type):
+    def __init__(self, STEPS_PER_SEMITONE, NUM_SEMITONES, with_bar_dependent_probs, hopTime, usul_type):
+        '''
+        create hmm and build its transition matrix
+        '''
         self.with_bar_dependent_probs = with_bar_dependent_probs
-        self.hmm = MonoNoteHMM(with_bar_dependent_probs, hopTime, usul_type)
-
+        self.hmm = MonoNoteHMM(STEPS_PER_SEMITONE, NUM_SEMITONES, with_bar_dependent_probs, hopTime, usul_type)
+        
+        self.hmm.build_trans_probs(with_bar_dependent_probs)
+        self.hmm.build_obs_model()
+        
     def process(self, pitch_contour_and_prob, bar_position_ts, bar_labels, hop_time):
         '''
+        compute obs. probabilities and decode with Viterbi
+         
+        Parameters
+        ----------------------
+        pitch_contour_and_prob
+            pitch observation feature
         bar_position_ts: list
             timestamps of bar positions
         bar_labels: list

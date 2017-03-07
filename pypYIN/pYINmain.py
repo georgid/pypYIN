@@ -44,7 +44,10 @@ from Yin import *
 from YinUtil import RMS
 from MonoPitch import MonoPitch
 from MonoNote import MonoNote
-PITCH_PROB = 0.9 
+from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
+    PITCH_PROB
+
+
 
 class Feature(object):
     def __init__(self):
@@ -244,7 +247,7 @@ class PyinMain(object):
 
 
         ############ convert to MIDI scale
-        mn = MonoNote(with_bar_positions, hop_time, usul_type) # if frame_beat_annos is set, use bar-position dependent annotation   
+        mn = MonoNote(STEPS_PER_SEMITONE, NUM_SEMITONES, with_bar_positions, hop_time, usul_type) # if frame_beat_annos is set, use bar-position dependent annotation   
         
 #         import matplotlib.pyplot as plt
 #         plt.plot(mn.hmm.transProbs[0,1][30*75 + 5: 31*75 +5])
@@ -264,7 +267,7 @@ class PyinMain(object):
         '''
         
         postprocessing of MIDI_pitch noteStatesToPitch
-        1. filter  onsets and store them as fields in  self.fs.onsetFrames
+        1. filter detected onsets and store them as fields in  self.fs.onsetFrames
         2.  filter also MIDI_pitch tracks per note (notePitchTracks) and median pitches
         
         Parameters
@@ -294,16 +297,24 @@ class PyinMain(object):
         for iFrame in range(nFrame):
             
             isVoiced = mnOut[iFrame].noteState < 3 and MIDI_pitch_contour[iFrame] > 0
+            
+            is_samepitch_onset = False
             if with_same_pitch_onsets: 
                 is_samepitch_onset = (iFrame >= nFrame-3 ) \
                     or (self.m_level[iFrame]/self.m_level[iFrame+2]>self.m_onsetSensitivity) # onset at same pitch if pitch amplitude changes above a threshold 
-                isVoiced = isVoiced and is_samepitch_onset
+#                 isVoiced = isVoiced and is_samepitch_onset
+                is_samepitch_onset = isVoiced and is_samepitch_onset # REPLACED
             
             
-            if isVoiced and iFrame != nFrame-1: # voiced pitch frame
-                if oldIsVoiced == 0: # onset only if previous frame was unvoiced
+#             if isVoiced and iFrame != nFrame-1: # sanity check
+#                 if oldIsVoiced == 0: # set onset at non-voiced-to-voiced transition
+#                     self.fs.onsetFrames.append( iFrame )
+            
+            if isVoiced and iFrame != nFrame-1: # sanity check                      # REPLACED
+                if oldIsVoiced == 0 or is_samepitch_onset: # set onset at non-voiced-to-voiced transition
                     self.fs.onsetFrames.append( iFrame )
                     
+            
                 MIDI_pitch = MIDI_pitch_contour[iFrame]
                 notePitchTrack = np.append(notePitchTrack, MIDI_pitch) # add to the note's MIDI_pitch
                 

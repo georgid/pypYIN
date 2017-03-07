@@ -781,7 +781,7 @@ The observation probability
 \end_inset
 
  (unlike the original model which sums to a global constant v).
- This leaves the observation probability for each non-vocal state be 
+ This leaves the probability for each non-vocal state be 
 \begin_inset Formula $\nicefrac{1-v_{k}}{n}$
 \end_inset
 

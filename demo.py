@@ -41,9 +41,13 @@
 
 
 '''
-WITH_BAR_POSITIONS = 1
+
+
+
+import json
+WITH_BAR_POSITIONS = 0
 WITH_MELODIA = 1
-WITH_ONSETS_SAME_PITCH = 1
+WITH_ONSETS_SAME_PITCH = 0
 
 fs = 44100
 frameSize = 2048
@@ -59,13 +63,12 @@ dir = os.path.dirname(os.path.realpath(__file__))
 srcpath = dir+'/code'
 if srcpath not in sys.path:
     sys.path.append(srcpath)
-from MonoNote import frame_to_ts
-import YinUtil
+from pypYIN.MonoNote import frame_to_ts
+import pypYIN.YinUtil
 
-import pYINmain
+import pypYIN.pYINmain
 import essentia.standard as ess
-import numpy as np
-from YinUtil import RMS
+from pypYIN.YinUtil import RMS
 VOCAL_ACTIVITY_EXT = '.vocal_anno'
 
 
@@ -81,24 +84,27 @@ from src.align.FeatureExtractor import extractPredominantPitch
 from makammusicbrainz.audiometadata import AudioMetadata
 
 
-def doit( fs, frameSize, hopSize, hop_time, argv):
+def doit( argv):
     if len(argv) != 3:
 #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
         sys.exit('usage: {} <recording dir>  <rec MBID>'.format(argv[0]))
     rec_ID = argv[2]
     filename1 = os.path.join(argv[1], rec_ID + '.wav')
     beat_file_URI = os.path.join(argv[1], rec_ID + '.beats' )
-    start_ts, end_ts = load_excerpt(argv[1])
+    excerpt_URI = os.path.join(argv[1],  'excerpt.txt')
+    pitch_file_URI = os.path.join(argv[1], rec_ID + '.pitch_audio_analysis' )
+    
+    start_ts, end_ts = load_excerpt(excerpt_URI)
 # initialise
 #     filename1 = srcpath + '/../vignesh_short.wav'
 #     filename1 = srcpath + '/../vignesh.wav'
-    pYinInst = pYINmain.PyinMain()
+    pYinInst = pypYIN.pYINmain.PyinMain()
     pYinInst.initialise(channels=1, inputSampleRate=fs, stepSize=hopSize, blockSize=frameSize, lowAmp=0.25, onsetSensitivity=0.7, pruneThresh=0.1)
     if WITH_MELODIA: # calculate RMS, which is done in pYIN pitch
         calc_rms(pYinInst, filename1)
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
     if WITH_BAR_POSITIONS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
-        bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, start_ts) #
+        bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, 0) #
         usul_type = get_usul_from_rec(rec_ID)
     else:
         bar_position_ts = []
@@ -106,9 +112,19 @@ def doit( fs, frameSize, hopSize, hop_time, argv):
         usul_type = None
     
     ########### extract  pitch from polyphonic with sercan's melodia
-    estimatedPitch_vocal = extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, end_ts)
+    if os.path.isfile(pitch_file_URI):
+        with open(pitch_file_URI, 'r') as f1:
+            estimatedPitch_vocal = json.load(f1)
+            estimatedPitch_vocal = np.array(estimatedPitch_vocal)
+    else:
+        estimatedPitch_vocal = extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, end_ts)
+        with open(pitch_file_URI, 'w') as f:
+            json.dump(estimatedPitch_vocal.tolist(), f)
     pYinInst.setDecodedMonoPitch(estimatedPitch_vocal) # not sure if this really changes s.th., but does not break things
+    
 
+    
+    
     ### get remaining features
     featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, WITH_BAR_POSITIONS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
     noteStates = []
@@ -172,7 +188,7 @@ def calc_rms(pYINinstnce, filename1):
 #         for i in range(self.m_blockSize):
 #             dInputBuffers[i] = inputBuffers[i]
         
-        rms = math.sqrt(YinUtil.sumSquare(frame, 0, pYINinstnce.m_yin.m_yinBufferSize)/pYINinstnce.m_yin.m_yinBufferSize)
+        rms = math.sqrt(pypYIN.YinUtil.sumSquare(frame, 0, pYINinstnce.m_yin.m_yinBufferSize)/pYINinstnce.m_yin.m_yinBufferSize)
         pYINinstnce.m_level = np.append(pYINinstnce.m_level, rms)
 
 
@@ -205,16 +221,19 @@ def store_results(WITH_BAR_POSITIONS, WITH_MELODIA, WITH_ONSETS_SAME_PITCH, hop_
     f = open(filename1_detected_onsets, 'w')
     csv_writer = csv.writer(f)
     for onset_frame_number in featureSet.onsetFrames:
-        ts = frame_to_ts(onset_frame_number, hop_time) # first frame centered at 0, becasue using default of FrameCutter in essentia
+        ts = frame_to_ts(onset_frame_number, hop_time) # first frame centered at 0, because using default of FrameCutter in essentia
         csv_writer.writerow([ts])
     
     print 'mono note decoded onsets written to file \n' + filename1_detected_onsets + '\n'
     f.close()
 
 
+
 if __name__ == "__main__":
     
-    doit(fs, frameSize, hopSize, hop_time, sys.argv)
+    doit( sys.argv)
+
+
 
 
 # def load_beat_anno_to_frames(beats_URI, len_frames):

@@ -58,7 +58,7 @@ class MonoPitchHMM(SparseHMM):
             self.m_freqs[iPitch] = self.m_minFreq * pow(2, iPitch * 1.0 / (12 * self.m_nBPS))  # 0 to m_nPitch-1 positive pitch
             self.m_freqs[iPitch+self.m_nPitch] = -self.m_freqs[iPitch]  # m_nPitch to 2*m_nPitch-1 negative pitch
         self.build()
-
+    
     def calculatedObsProb(self, pitchProb):
         # pitchProb is the pitch candidates of one frame
         out = np.zeros((2*self.m_nPitch+1,), dtype=np.float64)
@@ -93,8 +93,7 @@ class MonoPitchHMM(SparseHMM):
 
         return out
 
-    def build(self):
-
+    def build(self, build_trans_probs):
         # initial vector, uniform distribution
         self.init = np.ones((2*self.m_nPitch), dtype=np.float64) * 1.0/2*self.m_nPitch
 

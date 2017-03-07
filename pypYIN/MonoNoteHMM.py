@@ -48,15 +48,18 @@ import logging
 
 
 class MonoNoteHMM(SparseHMM):
-    def __init__(self, with_bar_dependent_probs, hopTime, usul_type):
+    def __init__(self,  STEPS_PER_SEMITONE, NUMBER_SEMITONES, with_bar_dependent_probs, hopTime, usul_type):
         self.with_bar_dependent_probs = with_bar_dependent_probs
-        self.par = MonoNoteParameters(with_bar_dependent_probs, hopTime, usul_type)
+        self.par = MonoNoteParameters(STEPS_PER_SEMITONE, NUMBER_SEMITONES, with_bar_dependent_probs, hopTime, usul_type)
         if with_bar_dependent_probs: # list of trans matrices
-            SparseHMM.__init__(self, self.par.barPositionDistance_Probs.shape[0], self.par.barPositionDistance_Probs.shape[1] + 1 ) # last is limit distance
+            num_beats = self.par.barPositionDistance_Probs.shape[0] # num beats in a bar for rhythmic pattern
+            dist_from_beat = self.par.barPositionDistance_Probs.shape[1] + 1 # distance form beat (in number of frames) last is default (limit distance) transition
+            SparseHMM.__init__(self, num_beats, dist_from_beat ) # 
         else: # only one trans matrix
             SparseHMM.__init__(self, 1,1 )
         self.pitchDistr = []
-        self.build(with_bar_dependent_probs)
+        
+        
 
     def calculatedObsProb(self, pitch_contour_and_prob):
         '''
@@ -126,7 +129,30 @@ class MonoNoteHMM(SparseHMM):
     def getFrequency(self, index):
         return 440 * pow(2.0, (self.pitchDistr[index].mean()-69)/12)
 
-    def build(self, with_bar_dependent_probs):
+
+    
+
+
+    def build_obs_model(self):
+        '''
+        build gmms for pitch observations
+        '''
+        for iState in range(self.par.n):
+            self.pitchDistr.append(norm(loc=0, scale=1))
+            if iState % self.par.nSPP == 2: # silent state starts tracking
+                self.init = np.append(self.init, np.float64(1.0 / (self.par.nS * self.par.nPPS)))
+            else:
+                self.init = np.append(self.init, np.float64(0.0))
+        
+        for iPitch in range(self.par.nS * self.par.nPPS):
+            index = iPitch * self.par.nSPP # each pitch has 3 state
+            mu = self.par.minPitch + iPitch * 1.0 / self.par.nPPS
+            self.pitchDistr[index] = norm(loc=mu, scale=self.par.sigmaYinPitchAttack)
+            self.pitchDistr[index + 1] = norm(loc=mu, scale=self.par.sigmaYinPitchStable)
+            self.pitchDistr[index + 2] = norm(loc=mu, scale=1.0) # dummy
+        
+
+    def build_trans_probs(self, with_bar_dependent_probs):
         # the states are organised as follows:
         # 0-2. lowest pitch
         #    0. attack state
@@ -136,29 +162,16 @@ class MonoNoteHMM(SparseHMM):
         #    3. attack state
         #    ...
 
-        ################## observation distributions
-        for iState in range(self.par.n):
-            self.pitchDistr.append(norm(loc=0, scale=1))
-            if iState % self.par.nSPP == 2: # silent state starts tracking
-                self.init = np.append(self.init, np.float64(1.0/(self.par.nS * self.par.nPPS)))
-            else:
-                self.init = np.append(self.init, np.float64(0.0))
-
-        for iPitch in range(self.par.nS * self.par.nPPS):
-            index = iPitch * self.par.nSPP   # each pitch has 3 state
-            mu = self.par.minPitch + iPitch * 1.0/self.par.nPPS
-            self.pitchDistr[index] = norm(loc=mu, scale=self.par.sigmaYinPitchAttack)
-            self.pitchDistr[index+1] = norm(loc=mu, scale=self.par.sigmaYinPitchStable)
-            self.pitchDistr[index+2] = norm(loc=mu, scale=1.0) # dummy
-        
+       
         
         ################### set sparse transition probabilities self.transProbs
-        # this might be the note transition probability function
+        
+        # the note transition probability depending on distance
         noteDistanceDistr = norm(loc=0, scale=self.par.sigma2Note)
 
         
         logging.warning('building transition matrix...')    
-        for iPitch in range(self.par.nS * self.par.nPPS): # loop through all notes and set sparse transition probabilities self.transProbs
+        for iPitch in range(self.par.nS * self.par.nPPS): # loop through all discrete pitch states
             index = iPitch * self.par.nSPP
 
             # transitions from attack state
@@ -195,38 +208,58 @@ class MonoNoteHMM(SparseHMM):
                     self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance], np.float64(1 - self.par.barPositionDistance_Probs[iBarPos, iDistance] ) ) # prob. of wait in silence 
                 self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1], np.float64(self.par.pSilentSelftrans ) ) # last distance is the default fixed silence self transition
             
-            # the more complicated transitions from the silent
-            # this prob only applies to transitions from silent to non silent
-            # which is the note transition
-            probSumSilent = 0.0
-
-            tempTransProbSilent = []
-            for jPitch in range(self.par.nS * self.par.nPPS): # compute fromIndex, toIndex and tempTransProbsSilent: the weighted from silent to non-silent
-                fromPitch = iPitch
-                toPitch = jPitch
-                semitoneDistance = fabs(fromPitch - toPitch) * 1.0 / self.par.nPPS
-
-                if semitoneDistance == 0 or \
-                        (semitoneDistance > self.par.minSemitoneDistance and semitoneDistance < self.par.maxJump): # store only transitions to states, which are within meaningful range 
-
-                    toIndex = jPitch * self.par.nSPP  # note attack index
-
-                    tempWeightSilent = noteDistanceDistr.pdf(semitoneDistance) # transitions according to note distance form weights that sum to one
-                    probSumSilent += tempWeightSilent
-
-                    tempTransProbSilent.append(tempWeightSilent)
-
-                    self.fromIndex = np.append(self.fromIndex, np.uint64(index+2))  # from a silence
-                    self.toIndex = np.append(self.toIndex, np.uint64(toIndex))  # to an attack
             
-            for i in range(len(tempTransProbSilent)): # append to transProbs  the computed  tempProbSilent
-                givenPitchTransProbSilent = tempTransProbSilent[i]/probSumSilent
-                givenPitch_barPositionDistance_Probs = self.par.barPositionDistance_Probs  * givenPitchTransProbSilent # bar-position probs weighted by transitions for transition towards given pitch
+            tempTransProbSilent, probSumSilent = self.build_silent_to_attack(iPitch, index, noteDistanceDistr)
+            
+            self.build_bar_aware_silent_to_attack(tempTransProbSilent, probSumSilent)
+    
+    def build_silent_to_attack(self, iPitch, index, noteDistanceDistr):
+        '''
+        the more complicated transitions from the silent
+        this prob only applies to transitions from silent to non silent, which is the transition to a new note
+        
+        Returns
+        -----------------------
+        nonzero_transProb_from_silent: list (~ 38)
+            non-zero transitions to neighbouring pitches 
+        '''
+        probSumSilent = 0.0
+        nonzero_transProb_from_silent = []
+        for jPitch in range(self.par.nS * self.par.nPPS): # compute fromIndex, toIndex and tempTransProbsSilent: the weighted from silent to non-silent
+            fromPitch = iPitch
+            toPitch = jPitch
+            semitoneDistance = fabs(fromPitch - toPitch) * 1.0 / self.par.nPPS
+            if semitoneDistance == 0 or (semitoneDistance > self.par.minSemitoneDistance and semitoneDistance < self.par.maxJump): # store only transitions to states, which are within meaningful range
+                toIndex = jPitch * self.par.nSPP # note attack index
+                tempWeightSilent = noteDistanceDistr.pdf(semitoneDistance) # transitions according to note distance form weights that sum to one
+                probSumSilent += tempWeightSilent
+                nonzero_transProb_from_silent.append(tempWeightSilent)
+                self.fromIndex = np.append(self.fromIndex, np.uint64(index + 2)) # from a silence
+                self.toIndex = np.append(self.toIndex, np.uint64(toIndex)) # to an attack
+        
+        return nonzero_transProb_from_silent, probSumSilent
+    
+    
+    def build_bar_aware_silent_to_attack(self, transProbs_from_silent, probSumSilent):
+        '''
+         weight  transProbs_from_silent with bar-position-aware 
+         
+         Parameters:
+         --------------------------
+         transProbs_from_silent:
+             trasitions probabilities from silent_to_attack for all pitches
+        '''
+        
+        for i in range(len(transProbs_from_silent)):
+                givenPitchTransProbSilent = transProbs_from_silent[i]/probSumSilent
+                # weight by bar-position
+                givenPitch_barPositionDistance_Probs = self.par.barPositionDistance_Probs  * givenPitchTransProbSilent
                 
-                for iBarPos in range(self.transProbs.shape[0]):
+                for iBarPos in range(self.transProbs.shape[0]): #
                     for iDistance in range(self.transProbs.shape[1]-1): 
                         self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance],
                                           np.float64( givenPitch_barPositionDistance_Probs[iBarPos, iDistance]) ) 
+                    
                     # last distance is the default fixed silence-to-note transition
                     self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1],
                                           np.float64( (1-self.par.pSilentSelftrans) * givenPitchTransProbSilent  ) ) 
