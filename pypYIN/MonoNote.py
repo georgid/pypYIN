@@ -62,6 +62,21 @@ class MonoNote(object):
         self.hmm.build_trans_probs(with_bar_dependent_probs)
         self.hmm.build_obs_model()
         
+
+    def path_to_stepstates(self, path):
+        '''
+        convert path to a list of FrameOutput with 3 states : 1: attack, 2: sustain, 3: silence 
+        '''
+        out = []
+        for iFrame in range(len(path)):
+            currPitch = -1.0
+            stateKind = 0
+            currPitch = self.hmm.par.minPitch + (path[iFrame] / self.hmm.par.nSPP) * 1.0 / self.hmm.par.nPPS
+            stateKind = (path[iFrame]) % self.hmm.par.nSPP + 1 # 1: attack, 2: sustain, 3: silence
+            out.append(FrameOutput(iFrame, currPitch, stateKind))
+        
+        return out
+
     def process(self, pitch_contour_and_prob, bar_position_ts, bar_labels, hop_time):
         '''
         compute obs. probabilities and decode with Viterbi
@@ -82,16 +97,9 @@ class MonoNote(object):
         
         self.create_beatPositions(obs_probs_T, bar_position_ts, bar_labels, hop_time)
         path, _ = self.hmm.decodeViterbi(obs_probs_T) # transpose to have time t as first dimension 
-
-        out = [] # convert to a list of FrameOutput type
-        for iFrame in range(len(path)):
-            currPitch = -1.0
-            stateKind = 0
-
-            currPitch = self.hmm.par.minPitch + (path[iFrame]/self.hmm.par.nSPP) * 1.0/self.hmm.par.nPPS
-            stateKind = (path[iFrame]) % self.hmm.par.nSPP + 1 # 1: attack, 2: sustain, 3: silence
-
-            out.append(FrameOutput(iFrame, currPitch, stateKind))
+        
+        
+        out = self.path_to_stepstates(path)
 
         return out
     

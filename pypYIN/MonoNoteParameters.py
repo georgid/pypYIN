@@ -46,8 +46,8 @@ STEPS_PER_SEMITONE = 3
 NUM_SEMITONES = 69
 PITCH_PROB = 0.9 
 
-DISTANCES_IN_SEC = 0.058 # corresponds to around 10 frames when hopsize=256
-# DISTANCES_IN_SEC = 0
+SMOOTHING_WINDOW = 0.058 # corresponds to around 10 frames when hopsize=256
+# SMOOTHING_WINDOW = 0
 DELTA = 0.3 # weight of importance of the note_onset_probs
 
 # probabilities of note onset at a position for a bar: taken from figure 5 in http://www.rhythmos.org/MMILab-Andre_files/JNMR2014_a_Holzapfel.pdf
@@ -61,7 +61,7 @@ note_onset_probs['duyek'] = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duy
 class MonoNoteParameters(object):
     def __init__(self, steps_per_semitone, number_semitones, with_bar_dependent_probs, hop_time, usul_type):
         self.minPitch = 35 # in MIDI
-        self.DISTANCES  = int(round(DISTANCES_IN_SEC / hop_time)) # consider frames until this distance far from an event (unit: frames) 
+        self.DISTANCES  = int(round(SMOOTHING_WINDOW / hop_time)) # consider frames until this distance far from an event (unit: frames) 
         self.nPPS = steps_per_semitone  #  steps per semitone
         self.nS = number_semitones # number of semitones
         self.nSPP = 3  # states per pitch: attack, sustain, silence

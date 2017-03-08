@@ -87,12 +87,13 @@ from makammusicbrainz.audiometadata import AudioMetadata
 def doit( argv):
     if len(argv) != 3:
 #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
-        sys.exit('usage: {} <recording dir>  <rec MBID>'.format(argv[0]))
+        sys.exit('usage: {} <data dir>  <rec MBID>'.format(argv[0]))
     rec_ID = argv[2]
-    filename1 = os.path.join(argv[1], rec_ID + '.wav')
-    beat_file_URI = os.path.join(argv[1], rec_ID + '.beats' )
-    excerpt_URI = os.path.join(argv[1],  'excerpt.txt')
-    pitch_file_URI = os.path.join(argv[1], rec_ID + '.pitch_audio_analysis' )
+    rec_URI = argv[1] + '/' + rec_ID + '/'
+    filename1 = os.path.join(rec_URI, rec_ID + '.wav')
+    beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats' )
+    excerpt_URI = os.path.join(rec_URI,  'excerpt.txt')
+    pitch_file_URI = os.path.join(rec_URI, rec_ID + '.pitch_audio_analysis' )
     
     start_ts, end_ts = load_excerpt(excerpt_URI)
 # initialise
@@ -127,11 +128,13 @@ def doit( argv):
     
     ### get remaining features
     featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, WITH_BAR_POSITIONS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
+    
+    ########## print note step states
     noteStates = []
     for mnOut in featureSet.m_oMonoNoteOut:
         noteStates.append(mnOut.noteState)
-    
     print noteStates
+
     featureSet = pYinInst.postprocessPitchTracks(MIDI_pitch_contour, featureSet.m_oMonoNoteOut, WITH_ONSETS_SAME_PITCH) # postprocess to get onsets
     store_results(WITH_BAR_POSITIONS, WITH_MELODIA, WITH_ONSETS_SAME_PITCH, hop_time, filename1, featureSet)
 

@@ -295,7 +295,7 @@ class PyinMain(object):
 
                 
         for iFrame in range(nFrame):
-            
+                        
             isVoiced = mnOut[iFrame].noteState < 3 and MIDI_pitch_contour[iFrame] > 0
             
             is_samepitch_onset = False

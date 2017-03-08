@@ -405,7 +405,7 @@ We use only one rhythmic pattern per usul.
 \end_layout
 
 \begin_layout Standard
-All hidden states can be agglomerated into a mega-variable x with state
+All hidden states can be agglomerated into a meta-variable x with state
  space the cartesian product of the individual state spaces.
  
 \end_layout
@@ -588,6 +588,25 @@ where
 \end_inset
 
  = 0.03 s.
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+This means cutting the interval at 2*sigma ~0.06.
+ IMPL: in 
+\begin_inset CommandInset href
+LatexCommand href
+name "distance_in_sec"
+target "https://github.com/georgid/pypYIN/blob/master/code/MonoNoteParameters.py#L46"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Description
@@ -724,12 +743,19 @@ key "atli2014audio"
 \end_inset
 
 
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-IMPL: for now it is constant PROB_PITCHED=0.9 in code.pYINmain.PyinMain.getRemaining
-Features
+IMPL: for now it is constant PROB_PITCHED=0.9 in 
+\begin_inset CommandInset href
+LatexCommand href
+name "PITCH_PROB"
+target "https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.py#L47"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -890,8 +916,33 @@ Evaluation metrics
 Experiment 1: annotated beats
 \end_layout
 
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+IMPL: to change trans probs only at beat positions, set 
+\begin_inset CommandInset href
+LatexCommand href
+name "SMOOTHING_WINDOW =0 "
+target "https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.py#L50 "
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
 \begin_layout Subsection
-Experiment 2: full model
+Experiment 2: simultaneous bar and note
+\end_layout
+
+\begin_layout Standard
+with_onsets_same_pitch = 0
 \end_layout
 
 \begin_layout Section

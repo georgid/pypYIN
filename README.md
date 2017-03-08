@@ -17,7 +17,9 @@ Scipy
 Essentia  
 
 ## Usage
-python demo.py /Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/ 92ef6776-09fa-41be-8661-025f9b33be4f
+MBID=92ef6776-09fa-41be-8661-025f9b33be4f;
+path_rec=/Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/;
+python demo.py $path_rec  $MBID
 
 ### Initialise:  
 Here are the parameters which need to be initialised before executing the main program:  
