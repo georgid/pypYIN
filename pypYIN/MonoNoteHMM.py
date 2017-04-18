@@ -170,7 +170,7 @@ class MonoNoteHMM(SparseHMM):
         noteDistanceDistr = norm(loc=0, scale=self.par.sigma2Note)
 
         
-        logging.warning('building transition matrix...')    
+        logging.warning('building transition matrix between note states...')    
         for iPitch in range(self.par.nS * self.par.nPPS): # loop through all discrete pitch states
             index = iPitch * self.par.nSPP
 

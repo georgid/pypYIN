@@ -39,16 +39,39 @@
 
 import numpy as np
 import sys
+import os
+
+parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir, os.path.pardir)) 
+
+pathEvaluation = os.path.join(parentDir, 'AlignmentDuration')
+if pathEvaluation not in sys.path:
+    sys.path.append(pathEvaluation)
+
 
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
-STEPS_PER_SEMITONE = 3
-NUM_SEMITONES = 69
+WITH_BEAT_ANNOS = 1 # beat-aware note onsets, read beats form annotation
+WITH_MELODIA = 1 # dont change for ISMIR 2017
+WITH_ONSETS_SAME_PITCH = 0 # dont change for ISMIR 2017 
+
+
+STEPS_PER_SEMITONE = 1
+NUM_SEMITONES = 35
+
+# STEPS_PER_SEMITONE = 2
+# NUM_SEMITONES = 15
+
 PITCH_PROB = 0.9 
+
+################ WITH BEAT DETECTION ###############################
+WITH_NOTES_STATES = 0 # no note states, e.g. decoding equivalent to the default Pattern Tracking Processor.  
+WITH_NOTES_STATES = 1
+
 
 SMOOTHING_WINDOW = 0.058 # corresponds to around 10 frames when hopsize=256
 # SMOOTHING_WINDOW = 0
 DELTA = 0.3 # weight of importance of the note_onset_probs
+DELTA = 1
 
 # probabilities of note onset at a position for a bar: taken from figure 5 in http://www.rhythmos.org/MMILab-Andre_files/JNMR2014_a_Holzapfel.pdf
 note_onset_probs = dict()
@@ -60,7 +83,7 @@ note_onset_probs['duyek'] = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duy
 
 class MonoNoteParameters(object):
     def __init__(self, steps_per_semitone, number_semitones, with_bar_dependent_probs, hop_time, usul_type):
-        self.minPitch = 35 # in MIDI
+        self.minPitch = 52 # in MIDI
         self.DISTANCES  = int(round(SMOOTHING_WINDOW / hop_time)) # consider frames until this distance far from an event (unit: frames) 
         self.nPPS = steps_per_semitone  #  steps per semitone
         self.nS = number_semitones # number of semitones

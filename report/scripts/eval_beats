@@ -1,0 +1,7 @@
+USUL=aksak
+
+python ~/workspace/madmom_notes/bin/evaluate beats -i --ann_dir "/Users/joro/workspace/otmm_vocal_segments_dataset/data/" -a .beats_tab --det_dir "/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/ht_0_0058_semitones_35_steps_1/$USUL/“ -d .estimatedbeats --skip 5
+
+
+
+

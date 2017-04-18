@@ -1,0 +1,36 @@
+
+
+Experiment 1: run with annotated beats :
+
+MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef;
+PATH_DATA=/Users/joro/workspace/otmm_vocal_segments_dataset/data/;
+python ~/workspace/pypYIN/demo.py $PATH_DATA
+
+python ~/workspace/pypYIN/doit_all.py $PATH_DATA
+
+
+---------------------------------------
+Experiment 2: WITH AUTOMATIC BEAT DETECTION:
+
+
+set WITH_NOTES_STATES=0 # to have no notes-influence
+
+# one:
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker single  -o $PATH_DATASET/experiments/ht_0_0058/$MBID/$MBID.estimatedbeats   $PATH_DATASET/data/$MBID/$MBID.wav
+
+# or all:
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker_all.py
+
+
+Eval all note onsets: 
+# one. deprecated
+$symbTr_name=
+python ~/workspace/pypYIN/eval_note_onsets_script.py /Users/joro/workspace/otmm_audio_score_alignment_dataset/data/$symbTr_name/$MBID/alignedNotes_vocal.txt  $PATH_DATA/$MBID/$MBID.onsets.bars
+
+
+# all
+WITH_BEAT_ANNO=0
+WITH_BEAT_DETECTION=1
+results_folder=/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/beat_anno/
+python ~/workspace/pypYIN/eval_note_onsets_script.py $results_folder $WITH_BEAT_ANNO $WITH_BEAT_DETECTION
+

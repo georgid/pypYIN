@@ -45,24 +45,29 @@
 
 
 import json
-WITH_BAR_POSITIONS = 0
-WITH_MELODIA = 1
-WITH_ONSETS_SAME_PITCH = 0
+from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
+    WITH_MELODIA, WITH_BEAT_ANNOS, WITH_ONSETS_SAME_PITCH, WITH_NOTES_STATES
 
 fs = 44100
 frameSize = 2048
+
+# default hopSize of essentia
 hopSize = 256
 hop_time = float(hopSize)/float(fs)
+
+# hop_time = 0.02 # dont change for ISMIR 2017
+# hopSize = int (hop_time * float(fs))
+
 
 import os, sys
 import mir_eval
 import numpy as np
 import logging
 import math
-dir = os.path.dirname(os.path.realpath(__file__))
-srcpath = dir+'/code'
-if srcpath not in sys.path:
-    sys.path.append(srcpath)
+# dir = os.path.dirname(os.path.realpath(__file__))
+# srcpath = dir+'/code'
+# if srcpath not in sys.path:
+#     sys.path.append(srcpath)
 from pypYIN.MonoNote import frame_to_ts
 import pypYIN.YinUtil
 
@@ -85,15 +90,16 @@ from makammusicbrainz.audiometadata import AudioMetadata
 
 
 def doit( argv):
-    if len(argv) != 3:
+    if len(argv) != 4:
 #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
-        sys.exit('usage: {} <data dir>  <rec MBID>'.format(argv[0]))
+        sys.exit('usage: {} <data dir>  <rec MBID> <output_dir>'.format(argv[0]))
     rec_ID = argv[2]
     rec_URI = argv[1] + '/' + rec_ID + '/'
     filename1 = os.path.join(rec_URI, rec_ID + '.wav')
     beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats' )
     excerpt_URI = os.path.join(rec_URI,  'excerpt.txt')
     pitch_file_URI = os.path.join(rec_URI, rec_ID + '.pitch_audio_analysis' )
+    output_dir = argv[3]
     
     start_ts, end_ts = load_excerpt(excerpt_URI)
 # initialise
@@ -104,7 +110,7 @@ def doit( argv):
     if WITH_MELODIA: # calculate RMS, which is done in pYIN pitch
         calc_rms(pYinInst, filename1)
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
-    if WITH_BAR_POSITIONS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
+    if WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
         bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, 0) #
         usul_type = get_usul_from_rec(rec_ID)
     else:
@@ -127,17 +133,21 @@ def doit( argv):
     
     
     ### get remaining features
-    featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, WITH_BAR_POSITIONS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
+    featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, WITH_BEAT_ANNOS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
     
     ########## print note step states
     noteStates = []
     for mnOut in featureSet.m_oMonoNoteOut:
         noteStates.append(mnOut.noteState)
-    print noteStates
+#     print noteStates
 
     featureSet = pYinInst.postprocessPitchTracks(MIDI_pitch_contour, featureSet.m_oMonoNoteOut, WITH_ONSETS_SAME_PITCH) # postprocess to get onsets
-    store_results(WITH_BAR_POSITIONS, WITH_MELODIA, WITH_ONSETS_SAME_PITCH, hop_time, filename1, featureSet)
-
+    
+    extension = determine_file_with_extension(NUM_SEMITONES, STEPS_PER_SEMITONE, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS=0)
+    
+    MBID = os.path.basename(filename1)[:-4]
+    URI_output = os.path.join(output_dir, MBID,  MBID + extension)
+    store_results(featureSet.onsetFrames, URI_output, hop_time)
 
     
 
@@ -209,67 +219,56 @@ def get_usul_from_rec(rec_ID):
     usul_type = audio_meta['usul'][0]['attribute_key'] 
     return usul_type
 
-def store_results(WITH_BAR_POSITIONS, WITH_MELODIA, WITH_ONSETS_SAME_PITCH, hop_time, filename1, featureSet):
-###################### serialize note onset timestamps
-    if WITH_BAR_POSITIONS: # with bar-position trans probs
-        extension = '.onsets.bars'
+
+
+def determine_file_with_extension( NUM_SEMITONES, STEPS_PER_SEMITONE, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
+    
+
+    extension = '.onsets'
+    if WITH_BEAT_ANNOS and WITH_DETECTED_BEATS:
+        sys.exit('cannot be with both annotations and detected beats')
+    if WITH_BEAT_ANNOS: # with beat-aware trans probs from annotated beats
+        extension += '.bars'
+        extension += '_nSemi_'
+        extension += str(NUM_SEMITONES)
+        extension += '_stepsPSemi_'
+        extension += str(STEPS_PER_SEMITONE)
+    elif WITH_DETECTED_BEATS:
+        
+        extension += '.madmom'
+        if WITH_NOTES_STATES:
+            extension += '_nSemi_'
+            extension += str(NUM_SEMITONES)
+            extension += '_stepsPSemi_'
+            extension += str(STEPS_PER_SEMITONE)
     else:
-        extension = '.onsets.tony' # default tony
+        extension += '.tony' # default tony
+        extension += '_nSemi_'
+        extension += str(NUM_SEMITONES)
+        extension += '_stepsPSemi_'
+        extension += str(STEPS_PER_SEMITONE)
+        
+        
     if not WITH_MELODIA:
         extension += '.pYINPitch'
-    if not WITH_ONSETS_SAME_PITCH:
-        extension += '.no_postprocessing'
-    filename1_detected_onsets = filename1[:-4] + extension
+    if WITH_ONSETS_SAME_PITCH:
+        extension += '.postprocessing'
+    return extension
+
+def store_results( onsetFrames, URI_output, hop_time ):
+###################### serialize note onset timestamps
+    
+    
     import csv
-    f = open(filename1_detected_onsets, 'w')
+    f = open(URI_output, 'w')
     csv_writer = csv.writer(f)
-    for onset_frame_number in featureSet.onsetFrames:
+    for onset_frame_number in onsetFrames:
         ts = frame_to_ts(onset_frame_number, hop_time) # first frame centered at 0, because using default of FrameCutter in essentia
         csv_writer.writerow([ts])
     
-    print 'mono note decoded onsets written to file \n' + filename1_detected_onsets + '\n'
+    print 'mono note decoded onsets written to file \n' + URI_output + '\n'
     f.close()
-
-
 
 if __name__ == "__main__":
     
     doit( sys.argv)
-
-
-
-
-# def load_beat_anno_to_frames(beats_URI, len_frames):
-#     '''
-#     load beat annotations and distribute labels to each frame 
-#     @deprecated: 
-#     Returns
-#     -------------------
-#     sample_labels: list
-#         beat labels at each frame 
-#     '''
-#     num_beats_usul = 9 # aksak 
-#     num_beats_usul = 10 # curcuna 
-#     
-#     beat_ts, beat_labels = load_beat_anno(beat_file_URI)
-# 
-#     beat_labels = np.array(beat_labels)
-#     beat_labels -= 1 #  start from 0, not from 1
-#     
-#     # # generate secondary-beat ts 
-#     # beat_ts_middle = []
-#     # for iB in range(len(boundaries)-1):
-#     #       beat_ts_middle.append( np.mean([boundaries[iB], boundaries[iB+1]]) )
-#     
-#     # beat_ts.extend(beat_ts_middle)        
-#     # beat_labels_middle = beat_labels[:len(beat_ts_middle)+1]
-#     # beat_labels*=2
-#     # beat_labels.extend(beat_labels_middle)
-#     # # TODO: sort intervals
-#     
-#     beat_time_intervals = mir_eval.util.boundaries_to_intervals(beat_ts)
-#     pre_beat_label = (beat_labels[0] - 1) % num_beats_usul # label of frames preceding first annotaated label
-#     sample_times, sample_labels = mir_eval.util.intervals_to_samples(beat_time_intervals, beat_labels, sample_size=256./44100., fill_value=pre_beat_label )
-#     if len_frames >len(sample_labels): # etend with last annotated beat
-#         sample_labels.extend([beat_labels[-1]] * (len_frames - len(sample_labels) ) )
-#     return sample_labels

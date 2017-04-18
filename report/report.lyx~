@@ -20,7 +20,7 @@
 \font_typewriter "default" "default"
 \font_math "auto" "auto"
 \font_default_family default
-\use_non_tex_fonts false
+\use_non_tex_fonts true
 \font_sc false
 \font_osf false
 \font_sf_scale 100 100
@@ -79,12 +79,41 @@
 
 \begin_body
 
+\begin_layout Title
+Improved detection of singing voice onsets aware of beats in a metrical
+ cycle
+\end_layout
+
 \begin_layout Abstract
 The goal of this study is to detect onsets of singing voice in polyphonic
- audio recordings from Turkish Makam singing.
+ audio recordings.
  We show that tracking in a probabilistic way the vocal note onsets simultaneous
  to the current position in a metrical cycle (usul) could improve the accuracy
  of vocal onset detection.
+ We propose an extension to the state-of-the art dynamic bar pointer model
+ for beat and meter tracking.
+ Evaluation on a corpus of Turkish Makam singing shows that the prosposed
+ model detects onsets more accurately than a a baseline unware of any metric
+ cycle information.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+For example, the accents within a rhythmic pattern in OTMM influence strongly
+ the accents of vowels in a lyrical phrase 
+\color red
+[ref]
+\color inherit
+.
+ However in other traditions (like Carnatic music), the accents in the rhythmic
+ pattern are not so pronouncedly coupled with the accents of the vocal part.
+ 
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -92,16 +121,67 @@ Introduction
 \end_layout
 
 \begin_layout Standard
-TODO:
+
+\color red
+TODO: introduce studies of note onset depending on rhythmic pattern
+\color inherit
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Huron ..
+ see bar-aware note onsets, HOlzapfel,- surface rhythm
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The automatic detection of vocal onsets is usually performed in the context
+ of singing voice transcription.
+\end_layout
+
+\begin_layout Standard
+In this work we propose a novel probabilistic model that tracks simultaneously
+ beats in a metrical cycle and note onsets of singing voice.
+ 
+\color red
+We assume the model emits an rhythmic accent feature that represents beats,
+ and in parallel a pitch contour,
+\color inherit
+ which represents vocal note onsets.
+ The vocal 
+\emph on
+Vs
+\emph default
+ non-vocal detection is done as a preprocessing step.
+ The knowledge if a frame is vocal or not is integrated in the pitch observation
+ model.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+introduce usul
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
 Related Work
 \end_layout
 
-\begin_layout Standard
-The automatic detection of vocal non-vocal is usually performed in the context
- of singing voice transcription.
+\begin_layout Subsection
+Singing voice transcription
 \end_layout
 
 \begin_layout Standard
@@ -120,16 +200,15 @@ key "mcnab1995signal"
 \end_layout
 
 \begin_layout Standard
-In the case when background instruments are present, essential first step
- is to extract the predominant pitch curve.
- A probabilistic note HMM is presented in 
+A probabilistic note HMM is presented in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "ryynanen2004probabilistic"
 
 \end_inset
 
-, where a note has 3 states: attack (onset), steady state and silent state.
+, where a note has 3 states: attack (onset), stable pitch state and silent
+ state.
  The transition probabilities are learned from data.
  Later this approach has been extended by adding a separate HMM for regions
  of transition between the steady notes 
@@ -142,7 +221,8 @@ key "krige2008explicit"
 .
  Recently Mauch et al.
  suggested to compact the musical knowledge into rules as a way to describe
- the observation and transition likelihoods, instead of training them 
+ the observation and transition likelihoods, instead of learning them from
+ data 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "mauch2015computer"
@@ -150,13 +230,27 @@ key "mauch2015computer"
 \end_inset
 
 .
- Although being conceptually capable of tracking onsets in singing voice
+ The authors cover a range with distinct pitch from lowest MIDI C2 up to
+ B7.
+ 
+\color black
+Each MIDI pitch is further divided into 3 sub-pitches, resulting in 
+\begin_inset Formula $n=207$
+\end_inset
+
+ notes with different pitch, each having the 3 note states A, S and N.
+ 
+\color inherit
+Although being conceptually capable of tracking onsets in singing voice
  audio with accompaniments, these approaches were tested only on a cappella
  singing.
+ 
 \end_layout
 
 \begin_layout Standard
-In recent work a flamenco-specific approach has been suggested 
+In the case when background instruments are present, essential first step
+ is to extract the predominant pitch curve.
+ In recent work a flamenco-specific approach has been suggested 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "kroher2015automatic"
@@ -167,37 +261,55 @@ key "kroher2015automatic"
  In flamenco some musical aspects evince significant deviations from the
  principles of Western music style.
  From this perspective the authors suggest a tradition-specific approach.
-\end_layout
-
-\begin_layout Standard
-As a primary step of the note transcription stage, notes are segmented by
- a set of flamenco-specific onset detection rules, based on pitch contour
+ As a primary step of the note transcription stage, notes are segmented
+ by a set of flamenco-specific onset detection rules, based on pitch contour
  and volume characteristics.
- Varying only one parameter - the Gaussian filter - we showed that using
- this method notes from makam singing can be segmented with reasonable recall
- of 75 and 65 % in the monophonic and polyphonic case [Dzhambazov].
+ Varying size of the Gaussian filter, we showed in a previous study that
+ using this method notes from Makam singing can be segmented with reasonable
+ recall of 75 and 65 % in the monophonic and polyphonic case [Dzhambazov].
 \end_layout
 
 \begin_layout Standard
 
 \color red
-In general vocal note onsets are divided into two types: with a change of
- pitch and at the same pitch.
- 
-\end_layout
-
-\begin_layout Section
-Dataset
-\end_layout
-
-\begin_layout Standard
-\begin_inset Flex URL
+\begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
 
-https://docs.google.com/spreadsheets/d/1f9wyxB6emGHvVGUhIjNQwSxxhOJhPAdNzA2BieyKVX
-w/edit?usp=sharing
+\color red
+URGENT: In general vocal note onsets are divided into two types: with a
+ change of pitch and at the same pitch.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Beat Detection
+\end_layout
+
+\begin_layout Standard
+TODO
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+Dynamic bar pointer model
+\end_layout
+
+\begin_layout Plain Layout
+Holzapfel, tracking the odd, 
+\end_layout
+
+\begin_layout Plain Layout
+Efficient state space
 \end_layout
 
 \end_inset
@@ -210,65 +322,17 @@ Approach
 \end_layout
 
 \begin_layout Standard
-A hidden Markov model (HMM) detects simultaneously beat and vocal note onsets.
- It is assumed to emit an onset feature that distinguishes beats frames,
- and in parallel a pitch contour, from which the note onsets are determined.
- The vocal 
-\emph on
-Vs
-\emph default
- non-vocal detection is done as a preprocessing step.
- The knowledge if a frame is vocal or not is integrated in the pitch observation
- model.
- 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-\begin_inset Float figure
-wide false
-sideways false
-status open
-
-\begin_layout Plain Layout
-\begin_inset Caption Standard
-
-\begin_layout Plain Layout
-Approach overview
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Subsection
-Model description
-\end_layout
-
-\begin_layout Standard
-We modify the bar-pointer model presented in 
+We base our model on the bar-pointer model for tracking simultaneously tempo,
+ bar position and beats, presented in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "holzapfel2014tracking"
 
 \end_inset
 
- by adding a hidden state for vocal note state, which depends on the current
- note position.
+.
+ We modify it by adding a hidden state for vocal note, which depends on
+ the current note position.
  The model is represented as DynamicBayesian Network in Fig.
  
 \begin_inset CommandInset ref
@@ -287,8 +351,9 @@ sideways false
 status open
 
 \begin_layout Plain Layout
+\align center
 \begin_inset Graphics
-	filename bar_pointer_and_notes_graph.jpg
+	filename /Users/joro/Dropbox/Phd_Figs/note_bar_DBN.jpeg
 	lyxscale 3
 	width 50page%
 
@@ -321,23 +386,50 @@ name "dbn"
 
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Hidden states
 \end_layout
 
+\begin_layout Subsubsection
+Tempo state 
+\begin_inset Formula $\dot{\phi}$
+\end_inset
+
+ and bar position state 
+\begin_inset Formula $\phi$
+\end_inset
+
+ 
+\end_layout
+
 \begin_layout Standard
-The tempo and bar position states have the same state space as in 
+
+\color black
+To assure feasible computational time we relied on the combined bar-tempo
+ efficient state space, presented in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs2015efficient"
 
 \end_inset
 
 .
+ To keep its size small, we input the ground truth tempo for each recording,
+ allowing tempo to deviate between 
+\begin_inset Formula $\pm10$
+\end_inset
+
+ bpm from ground truth.
+ Another reason for such tempo range limiting is to avoid possible octave
+ errors in the beat tracking, which would not be meaningful for beat-aware
+ note onset detection.
+ This results in H in the range of 100-1000 states per beat.
+ The total number of states in a musical bar is derived by multiplying H
+ by the number of beats B in usul.
  
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Subsubsection
 Note state 
 \begin_inset Formula $n_{k}$
 \end_inset
@@ -346,53 +438,27 @@ Note state
 \end_layout
 
 \begin_layout Standard
-The note states are a modified version of these suggested in 
+The note states are a modified version of these suggested in the note transcript
+ion model of 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "mauch2015computer"
 
 \end_inset
 
- for note transcription: Each musical note is represented by three states:
- attack (A), stable pitch part (S) and non-vocal state (N).
- The non-vocal state covers time intervals where the singing voice is not
- active, e.g.
- instrumental interludes.
- We let notes cover a range with distinct pitch from lowest MIDI pitch ..
- Hz up to ..
- Hz.
- To reflect the fine-grained microtones in Makam, each MIDI pitch is further
- divided into 3 sub-pitches, resulting in 
-\begin_inset Formula $n=207$
-\end_inset
-
- notes with different pitch, each having the 3 note states described above.
+.
+ We adopted the first two HMM note states: attack region (A), stable pitch
+ region (S) and replaced the silent one with non-vocal state (N).
+ Because full-fledged note transcription is outside the scope of this work,
+ instead of 3 steps per semitone, we used for simplicity only a single one,
+ which deteriorated just slightly the note onset detection accuracy.
+ Also, to reflect the pitch range in the dataset, on which we evaluate,
+ we set as minimal MIDI note E3 covering almost 3 octaves up to B5.
+ This results on total in 105 note states.
  
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-\begin_inset ERT
-status open
-
-\begin_layout Plain Layout
-
-
-\backslash
-end{description}
 \end_layout
 
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Paragraph
+\begin_layout Subsubsection
 Rhythmic pattern 
 \begin_inset Formula $r_{k}$
 \end_inset
@@ -401,16 +467,13 @@ Rhythmic pattern
 \end_layout
 
 \begin_layout Standard
-We use only one rhythmic pattern per usul.
-\end_layout
-
-\begin_layout Standard
-All hidden states can be agglomerated into a meta-variable x with state
- space the cartesian product of the individual state spaces.
+Since the usul type for each recording from the dataset is known a priori,
+ a hidden state for the rhythm pattern is not modeled explicitly.
+ We use only one rhythmic pattern per usul.
  
 \end_layout
 
-\begin_layout Subsubsection
+\begin_layout Subsection
 Transition model
 \end_layout
 
@@ -423,70 +486,53 @@ The tempo transition probability
 \begin_inset Formula $p(\phi_{k}|\phi_{k-1})$
 \end_inset
 
- are same as in 
+ are the same as in 
+\color red
+
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs2015efficient"
 
 \end_inset
 
+
+\color black
 .
+ Transition from one tempo to another is allowed only at the change of beat.
+ This is a reasonable approximation for local tempo deviations in Makam
+ music, which can be considered to occur relatively beat-wise.
+ 
 \end_layout
 
-\begin_layout Paragraph
+\begin_layout Subsubsection
 Note transition probability 
 \begin_inset Formula $p(n_{k}|n_{k-1})$
+\end_inset
+
+
+\begin_inset CommandInset label
+LatexCommand label
+name "par:Note-transition-probability"
+
 \end_inset
 
 
 \end_layout
 
 \begin_layout Standard
-Let 
-\begin_inset Formula $p_{nn'}$
-\end_inset
-
- be the probability for transition from non-vocal state 
-\begin_inset Formula $N_{n}$
-\end_inset
-
- at note 
-\begin_inset Formula $n$
-\end_inset
-
- to attack state 
-\begin_inset Formula $A_{n'}$
-\end_inset
-
- of note 
-\begin_inset Formula $n'$
-\end_inset
-
-.
- 
-\color red
-TODO: describer p_nn
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-
-\color red
-is distributed according to the pitch difference from current to
-\end_layout
-
-\begin_layout Plain Layout
-
-\color red
-following note (some formula based on code?)
-\end_layout
+The probability of advancing to a next note state is based on the transitions
+ of the note-HMM, introduced in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "mauch2015computer"
 
 \end_inset
 
 .
-
-\color inherit
- Let also 
+ Let use briefly review it: Within a note, except for the self-transitions,
+ the only possibility is to progress to next state (see Figure).
+ To ensure continuity each of the self-transition probabilities is rather
+ high: for example the one for non-vocal state 
 \family roman
 \series medium
 \shape up
@@ -499,7 +545,7 @@ following note (some formula based on code?)
 \noun off
 \color none
 
-\begin_inset Formula $P_{sa}$
+\begin_inset Formula $P_{nn}$
 \end_inset
 
 
@@ -514,57 +560,59 @@ following note (some formula based on code?)
 \uwave default
 \noun default
 \color inherit
- be a global probability of transiting from silence to any of the attack
- states.
- In 
+ is set to 0.9999, which is constant for all notes.
+ Let 
+\begin_inset Formula $P_{n'a''}$
+\end_inset
+
+ be the probability of transition from non-vocal state 
+\begin_inset Formula $N_{l'}$
+\end_inset
+
+ after note 
+\begin_inset Formula $l'$
+\end_inset
+
+ to attack state 
+\begin_inset Formula $A_{l''}$
+\end_inset
+
+ of its following note 
+\begin_inset Formula $l''$
+\end_inset
+
+.
+
+\color red
+ 
+\color inherit
+The authors assume that small pitch changes are more likely than larger
+ ones, approximately accoording to a normal distribution centered at pitch
+ change of zero (
 \begin_inset CommandInset citation
 LatexCommand cite
 key "mauch2015computer"
 
 \end_inset
 
- the note transition is defined as:
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-p(n_{k}|n_{k-1})=\begin{cases}
-\frac{p_{nn'}}{\sum_{n'}p_{nn'}}P_{sa} & n_{k-1}=N_{n,}\quad n_{k}=A_{n'}\\
-1-P_{sa} & n_{k-1}=n_{k}=N_{n}
-\end{cases}
-\]
+, Figure 1.b).
+ Now we can rewrite the note transition of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "mauch2015computer"
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-so that in the first case all transitions sum up to 
-\begin_inset Formula $P_{sa}$
-\end_inset
-
-, which is set to a constant 
-\begin_inset Formula $0.0001$
-\end_inset
-
-.
- We modify 
-\begin_inset Formula $P_{sa}$
-\end_inset
-
- to depend on current bar position 
-\begin_inset Formula $\phi_{k}$
-\end_inset
-
-:
+ as:
 \end_layout
 
 \begin_layout Standard
 \begin_inset Formula 
 \begin{equation}
-P_{sa}=0.0001+[N_{0,\sigma}(d(\phi_{k}))]^{w}p_{b}\label{eq:note_onset_trans_prob}
+p(n_{k}|n_{k-1})=\begin{cases}
+P_{n'a''} & n_{k-1}=N_{l',}\quad n_{k}=A_{l''}\\
+P_{nn} & n_{k-1}=n_{k}=N
+\end{cases}
 \end{equation}
 
 \end_inset
@@ -573,76 +621,226 @@ P_{sa}=0.0001+[N_{0,\sigma}(d(\phi_{k}))]^{w}p_{b}\label{eq:note_onset_trans_pro
 \end_layout
 
 \begin_layout Standard
-where 
+Note also that for transitions from non-vocal states it should hold that
+ 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\sum_{a''}p_{n'a''}=1-P_{nn}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ .
+ 
+\end_layout
+
+\begin_layout Standard
+
+\color black
+In this study, we modify 
+\begin_inset Formula $1-P_{nn}$
+\end_inset
+
+ to vary
+\color inherit
+ in time depending on the current bar position 
+\begin_inset Formula $\phi_{k}$
+\end_inset
+
+.
+ Let 
+\begin_inset Formula $b_{k}$
+\end_inset
+
+ be 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+the 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+beat, 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+closest
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ in time to a current bar position 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+
+\begin_inset Formula $\phi_{k}$
+\end_inset
+
+
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ and 
+\begin_inset Formula $d(b_{k})$
+\end_inset
+
+ be its time distance.
+ Although many notes are aligned with a beat in the musical score, in performanc
+e singers often advance or delay slightly note onsets in relation to the
+ beats.
+ To reflect that 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+fact,  we introduce 
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+a normal distribution 
 \begin_inset Formula $N_{0,\sigma}$
 \end_inset
 
- is a normal distribution, assigning probability, depending on the time
- interval 
-\begin_inset Formula $d(\phi_{k})$
-\end_inset
+ to make more likely onsets closer in time to beats: 
+\end_layout
 
- to closest beat for frame k.
- We set 
-\begin_inset Formula $\sigma$
-\end_inset
-
- = 0.03 s.
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-This means cutting the interval at 2*sigma ~0.06.
- IMPL: in 
-\begin_inset CommandInset href
-LatexCommand href
-name "distance_in_sec"
-target "https://github.com/georgid/pypYIN/blob/master/code/MonoNoteParameters.py#L46"
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+1-P_{nn}=0.0001+[N_{0,\sigma}(d(b_{k}))]^{w}e(b_{k})\label{eq:note_onset_trans_prob}
+\end{equation}
 
 \end_inset
 
 
 \end_layout
 
-\end_inset
-
-
+\begin_layout Standard
+where
 \end_layout
 
 \begin_layout Description
 \begin_inset Formula $w:$
 \end_inset
 
- weights the contribution of beat
+ sensitivity of note onset probability on beats.
+ 
 \end_layout
 
 \begin_layout Description
-\begin_inset Formula $p_{b}:$
+\begin_inset Formula $e(b):$
 \end_inset
 
- probability of note onset co-occurring with the beat number b 
+ probability of a note onset co-occurring with the 
+\begin_inset Formula $b^{th}$
+\end_inset
+
+ beat in the metric cycle (b 
 \begin_inset Formula $\in$
 \end_inset
 
- (0,|B|).
- Note that in equation 
+ (0,|B|)).
+ 
+\end_layout
+
+\begin_layout Standard
+Equation 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "eq:note_onset_trans_prob"
 
 \end_inset
 
- b is the number of the closest beat to frame k.
- 
-\end_layout
-
-\begin_layout Standard
-This means essentially, that 
-\begin_inset Formula $p_{nn'}$
+ means essentially, that 
+\begin_inset Formula $p_{n'a''}$
 \end_inset
 
- is kept, but scaled varyingly when close in time to a beat (also scaled
- more at down beats  than on beats with less accents).
+ is kept, but scaled differently depending on how close in time to a beat
+ it is.
+ (also scaled more at down beats  than on beats with less accents).
  
 \begin_inset Note Note
 status open
@@ -656,12 +854,42 @@ impl (`code.MonoNoteParameters.barPositionDist_Probs`)
 .
 \end_layout
 
-\begin_layout Subsubsection
-Beat Observation Model
+\begin_layout Subsection
+Observation Models
 \end_layout
 
 \begin_layout Standard
-In this paper for the beat observation 
+The defaut hopsize of the predominant vocal detection 
+\begin_inset Formula $h_{v}=0.0058$
+\end_inset
+
+ seconds, whereas the one used for computing the spectral flux feature in
+ 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+ 
+\begin_inset Formula $h_{s}=0.02$
+\end_inset
+
+ seconds.
+ Increasing 
+\begin_inset Formula $h_{v}$
+\end_inset
+
+ deteriorated the note onset accuracy resonably.
+ Therefore in this work we used hopsize of 0.0058 seconds.
+\end_layout
+
+\begin_layout Subsubsection
+Bar Observation model
+\end_layout
+
+\begin_layout Standard
+In this paper for the bar position observation 
 \family roman
 \series medium
 \shape up
@@ -701,11 +929,12 @@ key "holzapfel2014tracking"
 \begin_inset Formula $y^{f}$
 \end_inset
 
-, that represents note onsets, is extracted from the audio signal.
+, which represents the strength of rhytmic onsets at different bar positions,
+ is extracted from the audio signal.
 \end_layout
 
 \begin_layout Subsubsection
-Pitch Observation
+Pitch Observation Model
 \end_layout
 
 \begin_layout Standard
@@ -727,7 +956,15 @@ key "mauch2015computer"
 \emph on
 PredominantMelodyMakam
 \emph default
-, whereby each frame 
+ - an algorithm for predominant pitch extraction, extended from 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "salamon2012melody"
+
+\end_inset
+
+ and tailored to Makam Music.
+ As an output each frame 
 \begin_inset Formula $k$
 \end_inset
 
@@ -761,52 +998,33 @@ target "https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.
 \end_inset
 
 .
- Since the voicing detection of the contour extraction method is not optimal
- we ran a separate singing voice detection method 
-\color red
-[ref]
-\color inherit
- and assigned 
+ Simultaneously to pitch tracking 
+\emph on
+PredominantMelodyMakam
+\emph default
+ performs voicing detection.
+ However, since correct vocal pitch is crucial for the sake of this study,
+ we preferred to rely on manual vocal annotations and thus assigned 
 \begin_inset Formula $v_{k}=0$
 \end_inset
 
- for the detected non-vocal frames.
+ for all non-vocal frames.
 \end_layout
 
 \begin_layout Standard
-The observation probability 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\strikeout off
-\uuline off
-\uwave off
-\noun off
-\color none
 
+\color black
+For each state the observation probability 
 \begin_inset Formula $P(y_{k}^{p}|x_{k})$
 \end_inset
 
-
-\family default
-\series default
-\shape default
-\size default
-\emph default
-\bar default
-\strikeout default
-\uuline default
-\uwave default
-\noun default
-\color inherit
  of vocal states is normalized to sum to 
 \begin_inset Formula $v_{k}$
 \end_inset
 
  (unlike the original model which sums to a global constant v).
+
+\color inherit
  This leaves the probability for each non-vocal state be 
 \begin_inset Formula $\nicefrac{1-v_{k}}{n}$
 \end_inset
@@ -829,13 +1047,33 @@ Learning model parameters
 \end_layout
 
 \begin_layout Subsubsection
-Beat Observation model
+Bar Observation model
 \end_layout
 
 \begin_layout Standard
+2-GMM.
+ one pattern.
+ 
+\end_layout
 
-\color red
-TODO: learned fitting a GMM
+\begin_layout Standard
+pooled 16-grid per beat.
+ 
+\end_layout
+
+\begin_layout Standard
+It is zero mean, unit variance.
+ Normalization is done per song.
+ 
+\end_layout
+
+\begin_layout Standard
+Also mvavg takes out a DC bias by removing a moving average.
+  
+\end_layout
+
+\begin_layout Standard
+5-7 minutes
 \end_layout
 
 \begin_layout Subsubsection
@@ -865,11 +1103,11 @@ Inference
 \end_layout
 
 \begin_layout Standard
-The optimal hidden state sequence 
+The optimal hidden sequence of the joint state space 
 \begin_inset Formula $x_{1:K}$
 \end_inset
 
- that incorporates the tempo, bar position and note state sequence 
+ 
 \begin_inset Note Note
 status open
 
@@ -879,7 +1117,7 @@ status open
 
 \end_inset
 
- can de estimated by combining the observation models:
+ can de estimated by multiplying the observation models:
 \end_layout
 
 \begin_layout Standard
@@ -899,9 +1137,68 @@ We obtain
 \end_inset
 
  by decoding with the well-known Viterbi algorithm.
+ A Beat is detected when the bar position variable hits one of B positions
+ of strokes within the metrical cycle.
  A vocal note onset is detected when the state path enters an attack note
  state after being in non-vocal state.
  
+\end_layout
+
+\begin_layout Section
+Dataset
+\end_layout
+
+\begin_layout Standard
+The Turkish dataset is a subset of the dataset, presented in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+, including only recordings with singing voice present.
+ It is divided into training and test parts.
+ The test dataset comprises 5 1-minute excerpts from recordings with solo
+ singing voice for each of three rhtyhm classes, refered to as usuls in
+ OTMM: 9/8-usul Aksak, 10/8-usul Curcuna, and the 8=8-usul D¨uyek.
+ All excerpts are manually annotated with beats, downbeats and vocal note
+ onsets.
+ The training set spans around 7 minutes of audio from each of the three
+ usuls, annotated also manually with beats and downbeats.
+ Due to the scarcity of material with solo singing voice, several excerpts
+ with choir sections were included
+\end_layout
+
+\begin_layout Standard
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://docs.google.com/spreadsheets/d/1f9wyxB6emGHvVGUhIjNQwSxxhOJhPAdNzA2BieyKVX
+w/edit?usp=sharing
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: how many are on total note onsets, 
+\end_layout
+
+\begin_layout Plain Layout
+how many for each usul
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -912,8 +1209,54 @@ Experiments
 Evaluation metrics
 \end_layout
 
-\begin_layout Subsection
-Experiment 1: annotated beats
+\begin_layout Paragraph
+Beat detection
+\end_layout
+
+\begin_layout Standard
+Since improvement of the beat detector is outside the scope of this study,
+ we report accuracy of detected beats only in terms of their f-measure.
+ This serves solely as reference to existing work
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Note that f-measure is agnostic to the phase of the detected beats, which
+ is clearly not optimal.
+ 
+\end_layout
+
+\end_inset
+
+.
+ The f-measure can take a maximum value of 1, while beats tapped on the
+ off-beat relative to annotations will be assigned an f-measure of 0.
+ We used the default tolerance window of 70 ms, also applied in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+.
+ 
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+unlike vocal note onsets, beats are evaluated non only in vocal parts, but
+ everything until endTime in excerpt.txt, this is not absolutely correct,
+ as there might be different beat accuracy in vocal and non-vocal regions
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Paragraph
+Onset detection
 \end_layout
 
 \begin_layout Standard
@@ -921,7 +1264,57 @@ Experiment 1: annotated beats
 status open
 
 \begin_layout Plain Layout
-IMPL: to change trans probs only at beat positions, set 
+Is portamento in turkish singing another reason 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We measured note onset accuracy in terms of precision and recall.
+ Unlike a cappella singing, the exact onset times of singing voice accompanied
+ by instruments, might be much more ambiguous.
+ To accomodate this fact, we adopted the tolerance of t=50 ms, used for
+ vocal onsets in accompanied flamenco singing by 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "kroher2015automatic"
+
+\end_inset
+
+.
+ Note transcription accuracy remains outside the scope of this study.
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+annotation of vocal parts results practically in zero onsets detected in
+ non-vocal regions.
+ That is why vocal onsets are evaluated in practice only in vocal time intervals.
+ 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Experiment 1: with oracle beats
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
+IMPL: 
+\end_layout
+
+\begin_layout Plain Layout
+to allows changing trans probs only at beat positions, set 
 \begin_inset CommandInset href
 LatexCommand href
 name "SMOOTHING_WINDOW =0 "
@@ -934,15 +1327,893 @@ target "https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.
 
 \end_inset
 
+As a precursor to evaluating the full-fledged model, we conducted an experiment
+ with manually annotated beats.
+ This is done to test the general feasibility of the proposed note transition
+ probability 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "par:Note-transition-probability"
+
+\end_inset
+
+, unbiased from errors in the beat detection.
+ To this end, the detection of note onsets is carried out by a reduced model
+ with a single hidden state: the note state.
+ The observation model is reduced to the pitch observation model.
+ To represent the dependence of the note transition probability on the closest
+ beat, a variable-time HMM is implemented, similar to the one presented
+ in [Dzhambazov, ISMIR2016].
+ 
+\end_layout
+
+\begin_layout Standard
+We have tested different pairs of values for 
+\begin_inset Formula $w$
+\end_inset
+
+ and 
+\begin_inset Formula $\sigma$
+\end_inset
+
+ from Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:note_onset_trans_prob"
+
+\end_inset
+
+.
+ Onset detection accuracy peaked at w=1 and 
+\begin_inset Formula $\sigma$
+\end_inset
+
+= 0.03 seconds.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+0.03 related to the displacement of off-beat vocal onsets
+\end_layout
+
+\end_inset
+
+ As a baseline we run the algorithm of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "mauch2015computer"
+
+\end_inset
+
+ with the same number of note states, which is essentially the same note
+ transition model with fixed 
+\begin_inset Formula $1-P_{NN}=0.0001$
+\end_inset
+
+.
+ Table 1 presents the absolute accuracy compared to the baseline.
+ Inspection showed that the proposed model added some onsets around beats,
+ which are missed by baseline.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: URGENT: explain same pitch onsets not used and that is why we have
+ such low accuracy
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="3" columns="4">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+P
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+R
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F-meas
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+27.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+23.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+24.8
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat-aware
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+31.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+25
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+27.4
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Average accuracy of detected vocal note onsets with tolerance window of
+ 50 ms with annotated beats.
+ M stands for the baseline of Mauch et al.
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
 
 \end_layout
 
 \begin_layout Subsection
-Experiment 2: simultaneous bar and note
+Experiment 2: simultaneous beat and note detection
 \end_layout
 
 \begin_layout Standard
-with_onsets_same_pitch = 0
+The average f-measure of detected beats per usul can be seen in Table 2
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+per-recoding results can be found in sheet 2 of 
+\begin_inset Flex URL
+status collapsed
+
+\begin_layout Plain Layout
+
+https://docs.google.com/spreadsheets/d/1f9wyxB6emGHvVGUhIjNQwSxxhOJhPAdNzA2BieyKVX
+w/edit?usp=sharing
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ Except for curcuna, the beat tracking accuracy is comparable to the results
+ reported in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+ with one rhythmic pattern per recording.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Float table
+wide false
+sideways false
+status open
+
+\begin_layout Plain Layout
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="8" columns="6">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<column alignment="center" valignment="top">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+usul
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat F-meas
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+P
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+R
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+F-meas
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+duyek
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+40.4
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+25.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+31.2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat-aware
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+70.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+45.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+28.7
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+35.2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+aksak
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+27.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+22.1
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+25.6
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat-aware
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+74.8
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+37.5
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+30.3
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+33.2
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+M
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="3" alignment="center" valignment="middle" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+curcuna
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+-
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat-aware
+\end_layout
+
+\end_inset
+</cell>
+<cell multirow="4" alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+45.9
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+beat-aware
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+total
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Plain Layout
+\begin_inset Caption Standard
+
+\begin_layout Plain Layout
+Average accuracy of detected vocal note onsets with tolerance window of
+ 50 ms with detected beats.
+ Results are average per usul 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+impl: /Users/joro/workspace/madmom_notes/run_beats
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO box-plot chart with different values of weight w.
+\end_layout
+
+\end_inset
+
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+TODO: urgent: w is 0 in this experiment!!!
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -950,7 +2221,18 @@ Conclusions
 \end_layout
 
 \begin_layout Standard
-TODO
+
+\color red
+Could be used for beat-infromed transcription of singing voice.
+ 
+\end_layout
+
+\begin_layout Standard
+
+\color red
+whereas the correlation of rhythmic accents and vowel onsets is an example
+ of the influence of a fine-level context, true to a large extent in modern
+ rock music.
 \end_layout
 
 \begin_layout Standard
