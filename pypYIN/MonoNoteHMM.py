@@ -48,14 +48,22 @@ import logging
 
 
 class MonoNoteHMM(SparseHMM):
+    '''
+    creates the self.transProbs matrix
+    self.transProbs : shape (num_beats, num_distances + 1) 
+    # num_beats: num_beats in a bar for rhythmic pattern
+    # dist_from_beat: distance from beat (in number of frames) last is default (limit distance) transition 
+    
+    '''
+    
     def __init__(self,  STEPS_PER_SEMITONE, NUMBER_SEMITONES, with_bar_dependent_probs, hopTime, usul_type):
         self.with_bar_dependent_probs = with_bar_dependent_probs
         self.par = MonoNoteParameters(STEPS_PER_SEMITONE, NUMBER_SEMITONES, with_bar_dependent_probs, hopTime, usul_type)
         if with_bar_dependent_probs: # list of trans matrices
             num_beats = self.par.barPositionDistance_Probs.shape[0] # num beats in a bar for rhythmic pattern
-            dist_from_beat = self.par.barPositionDistance_Probs.shape[1] + 1 # distance form beat (in number of frames) last is default (limit distance) transition
+            dist_from_beat = self.par.barPositionDistance_Probs.shape[1] + 1 # distance from beat (in number of frames) last is default (limit distance) transition
             SparseHMM.__init__(self, num_beats, dist_from_beat ) # 
-        else: # only one trans matrix
+        else: # only the  trans matrix of model of Mauch
             SparseHMM.__init__(self, 1,1 )
         self.pitchDistr = []
         
@@ -209,11 +217,11 @@ class MonoNoteHMM(SparseHMM):
                 self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1], np.float64(self.par.pSilentSelftrans ) ) # last distance is the default fixed silence self transition
             
             
-            tempTransProbSilent, probSumSilent = self.build_silent_to_attack(iPitch, index, noteDistanceDistr)
+            tempTransProbSilent, probSumSilent = self._build_silent_to_attack(iPitch, index, noteDistanceDistr)
             
-            self.build_bar_aware_silent_to_attack(tempTransProbSilent, probSumSilent)
+            self._build_bar_aware_silent_to_attack(tempTransProbSilent, probSumSilent)
     
-    def build_silent_to_attack(self, iPitch, index, noteDistanceDistr):
+    def _build_silent_to_attack(self, iPitch, index, noteDistanceDistr):
         '''
         the more complicated transitions from the silent
         this prob only applies to transitions from silent to non silent, which is the transition to a new note
@@ -240,7 +248,7 @@ class MonoNoteHMM(SparseHMM):
         return nonzero_transProb_from_silent, probSumSilent
     
     
-    def build_bar_aware_silent_to_attack(self, transProbs_from_silent, probSumSilent):
+    def _build_bar_aware_silent_to_attack(self, transProbs_from_silent, probSumSilent):
         '''
          weight  transProbs_from_silent with bar-position-aware 
          
@@ -260,6 +268,6 @@ class MonoNoteHMM(SparseHMM):
                         self.transProbs[iBarPos, iDistance] = np.append(self.transProbs[iBarPos, iDistance],
                                           np.float64( givenPitch_barPositionDistance_Probs[iBarPos, iDistance]) ) 
                     
-                    # last distance is the default fixed silence-to-note transition
+                    # last distance is the default fixed silence-to-note transition from model of Mauch
                     self.transProbs[iBarPos, -1] = np.append(self.transProbs[iBarPos, -1],
                                           np.float64( (1-self.par.pSilentSelftrans) * givenPitchTransProbSilent  ) ) 

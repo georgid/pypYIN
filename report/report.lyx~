@@ -123,7 +123,18 @@ Introduction
 \begin_layout Standard
 
 \color red
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color red
 TODO: introduce studies of note onset depending on rhythmic pattern
+\end_layout
+
+\end_inset
+
+
 \color inherit
  
 \begin_inset Note Note
@@ -298,7 +309,7 @@ TODO
 
 \begin_layout Standard
 \begin_inset Note Note
-status collapsed
+status open
 
 \begin_layout Plain Layout
 Dynamic bar pointer model
@@ -333,7 +344,7 @@ key "holzapfel2014tracking"
 .
  We modify it by adding a hidden state for vocal note, which depends on
  the current note position.
- The model is represented as DynamicBayesian Network in Fig.
+ The model is represented as DynamicBayesian Network (DBN) in Fig.
  
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -348,7 +359,7 @@ reference "dbn"
 \begin_inset Float figure
 wide false
 sideways false
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \align center
@@ -748,15 +759,58 @@ closest
 \uwave default
 \noun default
 \color inherit
- and 
-\begin_inset Formula $d(b_{k})$
+.
+ 
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\begin{equation}
+1-P_{nn}=0.0001+\Theta(b_{k})e(b_{k})\label{eq:note_onset_trans_prob}
+\end{equation}
+
 \end_inset
 
- be its time distance.
- Although many notes are aligned with a beat in the musical score, in performanc
-e singers often advance or delay slightly note onsets in relation to the
+
+\end_layout
+
+\begin_layout Standard
+where
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $\Theta(b_{k}):$
+\end_inset
+
+ function weighting the contirbution of the beat
+\end_layout
+
+\begin_layout Description
+\begin_inset Formula $e(b):$
+\end_inset
+
+ probability of a note onset co-occurring with the 
+\begin_inset Formula $b^{th}$
+\end_inset
+
+ beat in the metric cycle (b 
+\begin_inset Formula $\in$
+\end_inset
+
+ (0,|B|))
+\end_layout
+
+\begin_layout Paragraph
+Annotated beats
+\end_layout
+
+\begin_layout Standard
+Although many notes are aligned with a beat in the musical score, in performance
+ singers often advance or delay slightly note onsets in relation to the
  beats.
- To reflect that 
+ In addition, manual beat annotations are not perfect and often have a slight
+ time bias.
+ To reflect these 
 \family roman
 \series medium
 \shape up
@@ -768,7 +822,7 @@ e singers often advance or delay slightly note onsets in relation to the
 \uwave off
 \noun off
 \color none
-fact,  we introduce 
+facts, we introduce 
 \family default
 \series default
 \shape default
@@ -784,13 +838,25 @@ a normal distribution
 \begin_inset Formula $N_{0,\sigma}$
 \end_inset
 
- to make more likely onsets closer in time to beats: 
+ to smooth the importance of beats over a time window around the beat: 
 \end_layout
 
 \begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
 \begin_inset Formula 
 \begin{equation}
-1-P_{nn}=0.0001+[N_{0,\sigma}(d(b_{k}))]^{w}e(b_{k})\label{eq:note_onset_trans_prob}
+\Theta(b_{k})=[N_{0,\sigma}(d(\phi_{k},b_{k}))]^{w}\label{eq:weight_anno}
 \end{equation}
 
 \end_inset
@@ -799,6 +865,18 @@ a normal distribution
 \end_layout
 
 \begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
 where
 \end_layout
 
@@ -806,23 +884,21 @@ where
 \begin_inset Formula $w:$
 \end_inset
 
- sensitivity of note onset probability on beats.
- 
+ sensitivity of note onset probability to beats 
 \end_layout
 
 \begin_layout Description
-\begin_inset Formula $e(b):$
+\begin_inset Formula $d(\phi_{k},b_{k}):$
 \end_inset
 
- probability of a note onset co-occurring with the 
-\begin_inset Formula $b^{th}$
+ the distance from current bar position 
+\begin_inset Formula $\phi_{k}$
 \end_inset
 
- beat in the metric cycle (b 
-\begin_inset Formula $\in$
+ to closest beat position 
+\begin_inset Formula $b_{k}$
 \end_inset
 
- (0,|B|)).
  
 \end_layout
 
@@ -830,7 +906,7 @@ where
 Equation 
 \begin_inset CommandInset ref
 LatexCommand ref
-reference "eq:note_onset_trans_prob"
+reference "eq:weight_anno"
 
 \end_inset
 
@@ -840,7 +916,6 @@ reference "eq:note_onset_trans_prob"
 
  is kept, but scaled differently depending on how close in time to a beat
  it is.
- (also scaled more at down beats  than on beats with less accents).
  
 \begin_inset Note Note
 status open
@@ -852,6 +927,50 @@ impl (`code.MonoNoteParameters.barPositionDist_Probs`)
 \end_inset
 
 .
+\end_layout
+
+\begin_layout Paragraph
+Automatically detected beats
+\end_layout
+
+\begin_layout Standard
+To keep the transition model light we decided to modify 
+\begin_inset Formula $1-P_{nn}$
+\end_inset
+
+ only at beat positions.
+ Therefore the weighting function is set to 1 only at bar positions correspondin
+g to beat positions, and zero elsewhere:
+\end_layout
+
+\begin_layout Standard
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+\begin_inset Formula 
+\begin{equation}
+\Theta(b_{k})=1_{d(phi_{k},b_{k})=0}\label{eq:weight_detected}
+\end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+When beats are automatically detected simultaneously to onsets we expect
+ that the system is more flexible and do not need a time-distance weighting
+ scheme.
+ 
 \end_layout
 
 \begin_layout Subsection
@@ -1051,29 +1170,31 @@ Bar Observation model
 \end_layout
 
 \begin_layout Standard
-2-GMM.
- one pattern.
- 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+todo describe better using tracking the odd paper
 \end_layout
 
-\begin_layout Standard
-pooled 16-grid per beat.
- 
-\end_layout
+\end_inset
 
-\begin_layout Standard
-It is zero mean, unit variance.
+To train the a rhythmic patterns, per usul we set aside 6 recordings with
+ beat annotations, which we did not use in evaluation.
+ For each usul we trained one pattern by fitting a 2-GMM on the spectral-flux-li
+ke feature vector.
+ Analogously to 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+ we pooled the bar positions down to 16 patterns per beat.
+ The feature vector was normalized to zero mean, unit variance and taking
+ moving average.
  Normalization is done per song.
  
-\end_layout
-
-\begin_layout Standard
-Also mvavg takes out a DC bias by removing a moving average.
-  
-\end_layout
-
-\begin_layout Standard
-5-7 minutes
 \end_layout
 
 \begin_layout Subsubsection
@@ -1142,6 +1263,16 @@ We obtain
  A vocal note onset is detected when the state path enters an attack note
  state after being in non-vocal state.
  
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+comment independence
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Section
@@ -1396,13 +1527,29 @@ key "mauch2015computer"
  Table 1 presents the absolute accuracy compared to the baseline.
  Inspection showed that the proposed model added some onsets around beats,
  which are missed by baseline.
+ Note that in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "mauch2015computer"
+
+\end_inset
+
+ the authors introduce a post-processing step, in which onstes of consecutive
+ sung notes with same pitch are detected considering their intensity difference.
+ We excludede this step in all system variant presented, because it could
+ not be integrated in the proposed DBN model.
+ This means that essentially in this work cases of consecutive same-pitch
+ notes are missed, which decreases somewhat the recall comapred to the original
+ algorithm.
  
+\end_layout
+
+\begin_layout Standard
 \begin_inset Note Note
 status open
 
 \begin_layout Plain Layout
-TODO: URGENT: explain same pitch onsets not used and that is why we have
- such low accuracy
+TODO box-plot chart with different values of weight w.
 \end_layout
 
 \end_inset
@@ -1412,6 +1559,7 @@ TODO: URGENT: explain same pitch onsets not used and that is why we have
 
 \begin_layout Standard
 \begin_inset Float table
+placement H
 wide false
 sideways false
 status open
@@ -1477,7 +1625,19 @@ M
 \begin_inset Text
 
 \begin_layout Plain Layout
-27.9
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+36.9
 \end_layout
 
 \end_inset
@@ -1486,7 +1646,19 @@ M
 \begin_inset Text
 
 \begin_layout Plain Layout
-23.7
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+33.8
 \end_layout
 
 \end_inset
@@ -1495,7 +1667,19 @@ M
 \begin_inset Text
 
 \begin_layout Plain Layout
-24.8
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+34.3
 \end_layout
 
 \end_inset
@@ -1515,7 +1699,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-31.7
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+40.4
 \end_layout
 
 \end_inset
@@ -1524,7 +1720,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-25
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+39.5
 \end_layout
 
 \end_inset
@@ -1533,7 +1741,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-27.4
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+39.0
 \end_layout
 
 \end_inset
@@ -1552,6 +1772,7 @@ beat-aware
 \begin_layout Plain Layout
 Average accuracy of detected vocal note onsets with tolerance window of
  50 ms with annotated beats.
+ NO CURCUNA!.
  M stands for the baseline of Mauch et al.
 \end_layout
 
@@ -1572,12 +1793,12 @@ Experiment 2: simultaneous beat and note detection
 \begin_layout Standard
 The average f-measure of detected beats per usul can be seen in Table 2
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 per-recoding results can be found in sheet 2 of 
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -1593,16 +1814,65 @@ w/edit?usp=sharing
 \end_inset
 
 .
- Except for curcuna, the beat tracking accuracy is comparable to the results
+ Except for curcuna the beat tracking accuracy is comparable to the results
  reported in 
 \begin_inset CommandInset citation
 LatexCommand cite
+after "Table 1.a-c, R=1"
 key "holzapfel2014tracking"
 
 \end_inset
 
- with one rhythmic pattern per recording.
+ We also observe a reasonable improvement of not onset metrics in cases
+ when the beats are detected rather reliably (for duyek and aksak).
  
+\end_layout
+
+\begin_layout Standard
+Importantly, the note onset accuracy is almost the same as with manual beat
+ annotations.
+ In preliminary experiments we saw that using the transition with the lightweigh
+t weighting 
+\begin_inset Formula $\Theta(b_{k})$
+\end_inset
+
+ from Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:weight_detected"
+
+\end_inset
+
+ with manual beat annotations results in onset accuracy much worse than
+ with the weighting presented in Eq.
+ 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "eq:weight_anno"
+
+\end_inset
+
+.
+ This means that the simultaneous tracking of beats in a DBN contributes
+ to a better-informed note onset detection compated to beats inout from
+ a preprocessing step.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+if not onsets are used, the beat detection is still the same, 
+\end_layout
+
+\begin_layout Plain Layout
+IMPL: https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.py#L
+68 WITH_NOTE_STATES=0
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard
@@ -1722,7 +1992,7 @@ duyek
 \uwave off
 \noun off
 \color none
-40.4
+33.1
 \end_layout
 
 \end_inset
@@ -1743,7 +2013,7 @@ duyek
 \uwave off
 \noun off
 \color none
-25.5
+31.6
 \end_layout
 
 \end_inset
@@ -1764,7 +2034,7 @@ duyek
 \uwave off
 \noun off
 \color none
-31.2
+31.6
 \end_layout
 
 \end_inset
@@ -1793,7 +2063,7 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-70.9
+86.4
 \end_layout
 
 \end_inset
@@ -1814,7 +2084,7 @@ beat-aware
 \uwave off
 \noun off
 \color none
-45.5
+37.8
 \end_layout
 
 \end_inset
@@ -1835,7 +2105,7 @@ beat-aware
 \uwave off
 \noun off
 \color none
-28.7
+36.1
 \end_layout
 
 \end_inset
@@ -1856,7 +2126,7 @@ beat-aware
 \uwave off
 \noun off
 \color none
-35.2
+36.1
 \end_layout
 
 \end_inset
@@ -1906,7 +2176,19 @@ aksak
 \begin_inset Text
 
 \begin_layout Plain Layout
-27.9
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+42.1
 \end_layout
 
 \end_inset
@@ -1915,7 +2197,19 @@ aksak
 \begin_inset Text
 
 \begin_layout Plain Layout
-22.1
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+36.9
 \end_layout
 
 \end_inset
@@ -1924,7 +2218,19 @@ aksak
 \begin_inset Text
 
 \begin_layout Plain Layout
-25.6
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+37.9
 \end_layout
 
 \end_inset
@@ -1953,7 +2259,7 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-74.8
+72.9
 \end_layout
 
 \end_inset
@@ -1962,7 +2268,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-37.5
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+45.0
 \end_layout
 
 \end_inset
@@ -1971,7 +2289,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-30.3
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+39.0
 \end_layout
 
 \end_inset
@@ -1980,7 +2310,19 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-33.2
+
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+40.3
 \end_layout
 
 \end_inset
@@ -2019,6 +2361,18 @@ curcuna
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+30.2
 \end_layout
 
 \end_inset
@@ -2028,6 +2382,18 @@ curcuna
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+26.2
 \end_layout
 
 \end_inset
@@ -2037,6 +2403,18 @@ curcuna
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+26.8
 \end_layout
 
 \end_inset
@@ -2065,7 +2443,7 @@ beat-aware
 \begin_inset Text
 
 \begin_layout Plain Layout
-45.9
+39.6
 \end_layout
 
 \end_inset
@@ -2108,11 +2486,11 @@ beat-aware
 
 \end_inset
 </cell>
-<cell alignment="center" valignment="top" usebox="none">
+<cell alignment="center" valignment="top" bottomline="true" leftline="true" usebox="none">
 \begin_inset Text
 
 \begin_layout Plain Layout
-total
+total (no curcuna)
 \end_layout
 
 \end_inset
@@ -2131,6 +2509,18 @@ total
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+40.9
 \end_layout
 
 \end_inset
@@ -2140,6 +2530,18 @@ total
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+37.3
 \end_layout
 
 \end_inset
@@ -2149,6 +2551,18 @@ total
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+37.9
 \end_layout
 
 \end_inset
@@ -2166,8 +2580,8 @@ total
 
 \begin_layout Plain Layout
 Average accuracy of detected vocal note onsets with tolerance window of
- 50 ms with detected beats.
- Results are average per usul 
+ 50 ms.
+ Results are averaged per usul 
 \end_layout
 
 \end_inset
@@ -2191,24 +2605,21 @@ impl: /Users/joro/workspace/madmom_notes/run_beats
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-TODO box-plot chart with different values of weight w.
+IMPL: https://github.com/georgid/pypYIN/blob/master/report/scripts/eval_beats
 \end_layout
 
 \end_inset
 
- 
-\begin_inset Note Note
+
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-TODO: urgent: w is 0 in this experiment!!!
+IMPL: https://github.com/georgid/pypYIN/blob/master/report/scripts/eval_onsets
 \end_layout
 
 \end_inset
@@ -2230,9 +2641,20 @@ Could be used for beat-infromed transcription of singing voice.
 \begin_layout Standard
 
 \color red
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color red
 whereas the correlation of rhythmic accents and vowel onsets is an example
  of the influence of a fine-level context, true to a large extent in modern
  rock music.
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Standard

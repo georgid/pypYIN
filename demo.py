@@ -216,7 +216,15 @@ def get_usul_from_rec(rec_ID):
     
 
     audio_meta = audioMetadata.from_musicbrainz(rec_ID)
-    usul_type = audio_meta['usul'][0]['attribute_key'] 
+    try:
+        usul_type = audio_meta['usul'][0]['attribute_key'] 
+        
+    except:
+        if rec_ID == '7aec9833-6482-4917-87bd-e60c7c1dae3c':
+            usul_type = 'kapali_curcuna'
+        else:
+            sys.exit('no usul type can be automatically fetched')
+            
     return usul_type
 
 

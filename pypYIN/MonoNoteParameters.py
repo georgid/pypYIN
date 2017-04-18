@@ -50,7 +50,7 @@ if pathEvaluation not in sys.path:
 
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
-WITH_BEAT_ANNOS = 1 # beat-aware note onsets, read beats form annotation
+WITH_BEAT_ANNOS = 0 # beat-aware note onsets, read beats form annotation
 WITH_MELODIA = 1 # dont change for ISMIR 2017
 WITH_ONSETS_SAME_PITCH = 0 # dont change for ISMIR 2017 
 

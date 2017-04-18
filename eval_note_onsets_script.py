@@ -2,7 +2,7 @@
 import mir_eval
 import sys
 import os
-from doit_all import list_MBID, ordered_list_MBID
+from doit_all import list_MBID, ordered_list_MBID, create_output_dirs
 from demo import WITH_ONSETS_SAME_PITCH, determine_file_with_extension
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
     WITH_BEAT_ANNOS, WITH_MELODIA
@@ -18,6 +18,7 @@ from load_data import load_aligned_notes
 
 
 TOLERANCE_TIME = 0.05
+
 
 
 
@@ -42,6 +43,9 @@ def print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
     
     for MBID in ordered_list_MBID.keys():
         output_dir = data_dir + MBID + '/'
+        output_dir = create_output_dirs(data_dir, WITH_BEAT_ANNOS)
+        output_dir +=  MBID + '/'
+        
         score_allignment_dir = '/Users/joro/workspace/otmm_audio_score_alignment_dataset/data/'
         annotation_URI = os.path.join(score_allignment_dir + ordered_list_MBID[MBID][0] + '/' + MBID, 'alignedNotes_vocal.txt')
         
