@@ -60,9 +60,7 @@ hop_time = float(hopSize)/float(fs)
 
 
 import os, sys
-import mir_eval
 import numpy as np
-import logging
 import math
 # dir = os.path.dirname(os.path.realpath(__file__))
 # srcpath = dir+'/code'
@@ -107,7 +105,7 @@ def doit( argv):
 #     filename1 = srcpath + '/../vignesh.wav'
     pYinInst = pypYIN.pYINmain.PyinMain()
     pYinInst.initialise(channels=1, inputSampleRate=fs, stepSize=hopSize, blockSize=frameSize, lowAmp=0.25, onsetSensitivity=0.7, pruneThresh=0.1)
-    if WITH_MELODIA: # calculate RMS, which is done in pYIN pitch
+    if WITH_MELODIA: # calculate RMS separately,  which is done internally for pYIN 
         calc_rms(pYinInst, filename1)
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
     if WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
@@ -118,7 +116,7 @@ def doit( argv):
         bar_labels = []
         usul_type = None
     
-    ########### extract  pitch from polyphonic with sercan's melodia
+    ########### extract  pitch from polyphonic with turkish-makam tailored melodia
     if os.path.isfile(pitch_file_URI):
         with open(pitch_file_URI, 'r') as f1:
             estimatedPitch_vocal = json.load(f1)
@@ -214,7 +212,9 @@ def get_usul_from_rec(rec_ID):
     from makammusicbrainz.audiometadata import AudioMetadata
     audioMetadata = AudioMetadata(get_work_attributes=True, print_warnings=True)
     
-
+    if rec_ID == 'dido': # workaround
+        return '44'
+    
     audio_meta = audioMetadata.from_musicbrainz(rec_ID)
     try:
         usul_type = audio_meta['usul'][0]['attribute_key'] 

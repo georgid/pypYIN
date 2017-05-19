@@ -95,10 +95,14 @@ if __name__ == "__main__":
 
     
 #     data_dir = '/Users/joro/workspace/otmm_vocal_segments_dataset/data/'
-    if len(sys.argv) != 4:
-        sys.exit('usage: {} <results_path> WITH_BEAT_ANNOS WITH_DETECTED_BEATS'.format(sys.argv[0]))
-    data_dir = sys.argv[1]    
-    WITH_BEAT_ANNOS = int(sys.argv[2])
-    WITH_DETECTED_BEATS = int(sys.argv[3])
-    print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS)
-    
+#     if len(sys.argv) != 4:
+#         sys.exit('usage: {} <results_path> WITH_BEAT_ANNOS WITH_DETECTED_BEATS'.format(sys.argv[0]))
+#     data_dir = sys.argv[1]    
+#     WITH_BEAT_ANNOS = int(sys.argv[2])
+#     WITH_DETECTED_BEATS = int(sys.argv[3])
+#     print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS)
+#     
+    detected = '/Users/joro/workspace/lakh_vocal_segments_dataset/experiments/beat_anno/dido/dido.onsets.tony_nSemi_35_stepsPSemi_1'
+    annot = '/Users/joro/workspace/lakh_vocal_segments_dataset/data/dido/dido.vocal_anno'
+    F, P, R = eval_onsets_one_file(TOLERANCE_TIME, ['sad', annot, detected])
+    print F,P,R

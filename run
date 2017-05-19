@@ -3,8 +3,10 @@
 Experiment 1: run with annotated beats :
 
 MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef;
-PATH_DATA=/Users/joro/workspace/otmm_vocal_segments_dataset/data/;
-python ~/workspace/pypYIN/demo.py $PATH_DATA
+PATH_DATA=/Users/joro/workspace/otmm_vocal_segments_dataset/;
+PATH_OUTPUT=/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/
+
+python ~/workspace/pypYIN/demo.py $PATH_DATA $MBID $PATH_OUTPUT
 
 python ~/workspace/pypYIN/doit_all.py $PATH_DATA
 
@@ -16,7 +18,8 @@ Experiment 2: WITH AUTOMATIC BEAT DETECTION:
 set WITH_NOTES_STATES=0 # to have no notes-influence
 
 # one:
-python ~/workspace/madmom_notes/bin/GMMNotePatternTracker single  -o $PATH_DATASET/experiments/ht_0_0058/$MBID/$MBID.estimatedbeats   $PATH_DATASET/data/$MBID/$MBID.wav
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker.py  single  -o $PATH_DATASET/experiments/ht_0_0058/$MBID/$MBID.estimatedbeats   $PATH_DATASET/data/$MBID/$MBID.wav
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker.py single -o   ../lakh_vocal_segments_dataset/experiments/dido.estimatedbeats   ../lakh_vocal_segments_dataset/dido/dido.wav
 
 # or all:
 python ~/workspace/madmom_notes/bin/GMMNotePatternTracker_all.py
@@ -29,8 +32,8 @@ python ~/workspace/pypYIN/eval_note_onsets_script.py /Users/joro/workspace/otmm_
 
 
 # all
-WITH_BEAT_ANNO=0
-WITH_BEAT_DETECTION=1
+WITH_BEAT_ANNO=1
+WITH_BEAT_DETECTION=0
 results_folder=/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/beat_anno/
 python ~/workspace/pypYIN/eval_note_onsets_script.py $results_folder $WITH_BEAT_ANNO $WITH_BEAT_DETECTION
 

@@ -50,6 +50,8 @@ if pathEvaluation not in sys.path:
 
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
+WITH_MAKAM = 0
+
 WITH_BEAT_ANNOS = 0 # beat-aware note onsets, read beats form annotation
 WITH_MELODIA = 1 # dont change for ISMIR 2017
 WITH_ONSETS_SAME_PITCH = 0 # dont change for ISMIR 2017 
@@ -79,6 +81,8 @@ note_onset_probs['aksak'] = [0.92, 0.45, 0.8, 0.8, 0.92, 0.65, 0.85, 0.5, 0.6]
 note_onset_probs['curcuna'] = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # curcuna
 note_onset_probs['kapali_curcuna'] = [0.90, 0.25, 0.8, 0.85, 0.5, 0.95, 0.6, 0.9, 0.3, 0.5] # same as curcuna
 note_onset_probs['duyek'] = [0.75, 0.7, 0.55, 0.75, 0.85, 0.5, 0.75, 0.45] # duyek
+
+note_onset_probs['44'] = [0.6, 0.9, 0.6, 0.9]
 # note_onset_probs['turkaksagi_ii'] = [] # TODO
 
 class MonoNoteParameters(object):
@@ -93,8 +97,7 @@ class MonoNoteParameters(object):
         self.pAttackSelftrans = 0.9
         self.pStableSelftrans = 0.99
         self.pStable2Silent = 0.01
-#         self.pSilentSelftrans = 0.9999
-        self.pSilentSelftrans = 0.99999
+        self.pSilentSelftrans = 0.9999
         self.sigma2Note = 0.7
         self.maxJump = 13.0
         self.pInterSelftrans = 0.0
