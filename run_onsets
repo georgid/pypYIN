@@ -1,0 +1,51 @@
+This is a short explanation of how to reproduce the two experiments of sections 5.2 and 5.3 of the
+paper  Dzhambazov et al., 2017. Metrical-accent aware vocal onset detection in polyphonic audio
+
+Experiment 1: run with annotated beats :
+--------------------------------------------
+
+MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef;
+MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef; # or for lakh
+
+PATH_DATA=/Users/joro/workspace/otmm_vocal_segments_dataset/;
+PATH_OUTPUT=/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/
+
+python ~/workspace/pypYIN/demo.py $PATH_DATA $MBID $PATH_OUTPUT
+
+python ~/workspace/pypYIN/doit_all.py $PATH_DATA
+
+
+Experiment 2: WITH AUTOMATIC BEAT DETECTION:
+---------------------------------------
+
+# set path
+PATH_DATASET=/Users/joro/workspace/otmm_vocal_segments_dataset/
+or
+PATH_DATASET=/Users/joro/workspace//lakh_vocal_segments_dataset/
+
+
+OUTPUT_FILE=$PATH_DATASET/experiments/ht_0_0058/$MBID/$MBID.estimatedbeats # output beats, onsets are written to a default etension .onsets.bars
+INPUT_AUDIO=$PATH_DATASET/data/$MBID/$MBID.wav
+
+## run on one
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker.py  single  -o $OUTPUT_FILE   $INPUT_AUDIO
+
+# or many: modify suffix in file GMMNotePatternTracker_all.py
+python ~/workspace/madmom_notes/bin/GMMNotePatternTracker_all.py
+
+
+to turn off the state space for notes (in essense, equivalent to madmom's defaults mode), set WITH_NOTES_STATES=0 
+
+# Eval all note onsets: 
+## one. deprecated
+$symbTr_name=
+python ~/workspace/pypYIN/eval_note_onsets_script.py /Users/joro/workspace/otmm_audio_score_alignment_dataset/data/$symbTr_name/$MBID/alignedNotes_vocal.txt  $PATH_DATA/$MBID/$MBID.onsets.bars
+
+
+## all
+WITH_BEAT_ANNO=1
+WITH_BEAT_DETECTION=0
+results_folder=/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/beat_anno/
+python ~/workspace/pypYIN/eval_note_onsets_script.py $results_folder $WITH_BEAT_ANNO $WITH_BEAT_DETECTION
+
+NOTE: for reproducing beat detection and evaluation see run_beats 

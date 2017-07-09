@@ -68,6 +68,16 @@
 %\def\authorname{First author, Second author, Third author, Fourth author, Fifth author, Sixth author}
 
 
+\multauthor
+{  \hspace{0.6cm}Georgi Dzhambazov$^1$\hspace{0.1cm} Andre Holzapfel$^2$} { \bfseries{ Ajay Srinivasamurthy$^1$ \hspace{0.1cm}Xavier Serra$^1$}\\
+$^1$  Music Technology Group, Universitat Pompeu Fabra, Barcelona, Spain\\
+$^2$ Media Technology and Interaction Design, KTH Royal Institute of Technology, Stockholm, Sweden\\
+%$^3$  Company, Address\\
+{\tt\small georgi.dzhambazov@upf.edu}
+}
+\def\authorname{Georgi Dzhambazov, Andre Holzapfel, Ajay Srinivasamurthy, Xavier Serra }
+
+
 \sloppy % please retain sloppy command for improved formatting
 \end_preamble
 \use_default_options false
@@ -365,11 +375,11 @@ key "NishikimiNIY16"
 .
  
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
- In flamenco some musical aspects evince significant deviations from the
- principles of Western music style.
+ THIS NOTE RELEVANT: In flamenco some musical aspects evince significant
+ deviations from the principles of Western music style.
  From this perspective the authors suggest a tradition-specific approach.
  As a primary step of the note transcription stage, notes are segmented
  by a set of flamenco-specific onset detection rules, based on pitch contour
@@ -384,16 +394,6 @@ key "dzhambazov2016onsetLyrics_ismir"
 \end_inset
 
 .
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-this is not relevant, delete?
 \end_layout
 
 \end_inset
@@ -561,16 +561,48 @@ key "holzapfel2014tracking"
 \end_inset
 
 , including only the recordings with singing voice present.
- It is divided into training and test dataset.
+ The first author divided it into training and test parts.
  The test dataset comprises 5 1-minute excerpts from recordings with solo
  singing voice for each of two meter classes, referred to as usuls in Turkish
  makam: the 9/8-usul aksak and the 8/8-usul düyek.
- All excerpts are manually annotated with beats, downbeats and vocal note
- onsets.
- Interestingly, each usul has a characteristic pattern of beat positions,
- on which percussive strokes are hit.
- For example, in aksak the beats 1,3,4,5,7 and 9 have strokes.
- Percussionists of Turkish Makam tend to observe these patterns rather conservat
+ The beats and downbeats were annotated in the previous work 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+.
+ The vocal note onsets are annotated by the first author, wherein only pitched
+ onsets are we considered.
+ To his end, if a syllable starts with an unvoiced consonant, the onset
+ in placed at the beginning of the succeeding voiced phoneme
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+The dataset is available at 
+\begin_inset CommandInset href
+LatexCommand href
+name "http://compmusic.upf.edu/node/345"
+target "http://compmusic.upf.edu/node/345"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ Interestingly, in makam each usul has a characteristic pattern of beat
+ positions, on which percussive strokes are hit.
+ For example, in 
+\emph on
+aksak
+\emph default
+ the beats 1,3,4,5,7 and 9 have strokes.
+ Percussionists of Turkish makam tend to observe these patterns rather conservat
 ively.
 \end_layout
 
@@ -583,11 +615,11 @@ The training set spans around 7 minutes of audio from each of the two usuls,
 
 \begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 \begin_inset Flex URL
-status collapsed
+status open
 
 \begin_layout Plain Layout
 
@@ -627,18 +659,26 @@ English pop
 \end_layout
 
 \begin_layout Standard
-The datasets, on which singing voice transcription in popular polyphonic
- music is evaluated are one or two 
+The datasets, on which singing voice transcription in multi-instrumental
+ music is evaluated, are limited and small 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "benetos2013automatic"
 
 \end_inset
 
+: Often a subset of the RWC dataset is employed that contains only 6 minutes
+ of audio 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "Goto02rwcmusic"
+
+\end_inset
+
 .
  To overcome this bias, we compiled a new one: We selected 10 30-second
- clips of English pop songs, which have been aligned to their corresponding
- MIDIs in a recent study 
+ audio clips of English pop songs, which have been aligned to their correspondin
+g MIDIs in a recent study 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "raffel2016learning"
@@ -646,46 +686,44 @@ key "raffel2016learning"
 \end_inset
 
 .
- The audio recordings are 30-second thumbnails of the Million Song Dataset
-\series bold
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-
-\series bold
-[MSD]
-\end_layout
-
-\end_inset
-
-
-\series default
-
+ The clips are the 30-second thumbnails of the Million Song Dataset
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-http://colinraffel.com/projects/lmd/
+\begin_inset CommandInset href
+LatexCommand href
+target "http://colinraffel.com/projects/lmd/"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
 
 .
- All pop songs are in 4/4 meter.
- Criteria for selecting the songs are the presence of drums accompaniment
- and predominance of the vocal line.
- We generated the singing voice transcription from the vocal MIDI channel
- and the corresponding aligned timestamps in the audio recording.
- We added annotations of vocal segments.
+ All of them are in 4/4 meter.
+ Criteria for selecting the clips are the predominance of the vocal line
+ and the presence of percussive accompaniment.
+ We derived the timestamps of the vocal onsets from the aligned vocal MIDI
+ channel, whereby we verified by listening that their locations are precise.
+ Clips with even slight vocal misalignments were not considered.
+ Additionally, we added annotations for segments where singing voice is
+ present.
  To encourage further studies on singing voice transcription we make available
  the derived annotations
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-suppressed for anonymity
+\begin_inset CommandInset href
+LatexCommand href
+target "https://github.com/georgid/lakh_vocal_segments_dataset"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -776,7 +814,7 @@ status collapsed
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename /Users/joro/Dropbox/Phd_Figs/note_bar_DBN.jpeg
+	filename /Users/joro/Dropbox/LyxPhDThesis/Phd_Figs/note_bar_DBN.jpeg
 	lyxscale 10
 	width 100col%
 
@@ -2408,7 +2446,18 @@ status open
 
 \begin_layout Plain Layout
 We ported the original VAMP plugin implementation to python, which is available
- at suppressed for anonymity
+ at 
+\begin_inset Newline linebreak
+\end_inset
+
+
+\begin_inset CommandInset href
+LatexCommand href
+target "https://github.com/georgid/pypYIN"
+
+\end_inset
+
+
 \end_layout
 
 \end_inset
@@ -2439,77 +2488,6 @@ key "mauch2015computer"
  notes are missed, which decreases somewhat the recall compared to the original
  algorithm.
  
-\end_layout
-
-\begin_layout Subsection
-Evaluation metrics
-\end_layout
-
-\begin_layout Subsubsection
-Beat detection
-\end_layout
-
-\begin_layout Standard
-Since improvement of the beat detector is outside the scope of this study,
- we report accuracy of detected beats only in terms of their f-measure
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-The evaluation script used is at 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://github.com/CPJKU/madmom/blob/master/madmom/evaluation/beats.py"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-.
- This serves solely the sake of comparison to existing work
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-Note that f-measure is agnostic to the phase of the detected beats, which
- is clearly not optimal.
- 
-\end_layout
-
-\end_inset
-
-.
- The f-measure can take a maximum value of 1, while beats tapped on the
- off-beat relative to annotations will be assigned an f-measure of 0.
- We used the default tolerance window of 
-\begin_inset Formula $70\thinspace ms$
-\end_inset
-
-, also applied in 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "holzapfel2014tracking"
-
-\end_inset
-
-.
- 
-\begin_inset Note Comment
-status collapsed
-
-\begin_layout Plain Layout
-unlike vocal note onsets, beats are evaluated non only in vocal parts, but
- everything until endTime in excerpt.txt, this is not absolutely correct,
- as there might be different beat accuracy in vocal and non-vocal regions
- 
-\end_layout
-
-\end_inset
-
-
 \begin_inset Float table
 placement t
 wide true
@@ -3149,10 +3127,6 @@ Ex-2
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
@@ -3691,10 +3665,6 @@ Ex-2
 
 \end_layout
 
-\begin_layout Plain Layout
-
-\end_layout
-
 \end_inset
 
 
@@ -3729,6 +3699,77 @@ name "results_all"
 \end_inset
 
 
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Subsection
+Evaluation metrics
+\end_layout
+
+\begin_layout Subsubsection
+Beat detection
+\end_layout
+
+\begin_layout Standard
+Since improvement of the beat detector is outside the scope of this study,
+ we report accuracy of detected beats only in terms of their f-measure
+\begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+The evaluation script used is at 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://github.com/CPJKU/madmom/blob/master/madmom/evaluation/beats.py"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
+ This serves solely the sake of comparison to existing work
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Note that the f-measure is agnostic to the phase of the detected beats,
+ which is clearly not optimal.
+ 
+\end_layout
+
+\end_inset
+
+.
+ The f-measure can take a maximum value of 1, while beats tapped on the
+ off-beat relative to annotations will be assigned an f-measure of 0.
+ We used the default tolerance window of 
+\begin_inset Formula $70\thinspace ms$
+\end_inset
+
+, also applied in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "holzapfel2014tracking"
+
+\end_inset
+
+.
+ 
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+unlike vocal note onsets, beats are evaluated non only in vocal parts, but
+ everything until endTime in excerpt.txt, this is not absolutely correct,
+ as there might be different beat accuracy in vocal and non-vocal regions
+ 
 \end_layout
 
 \end_inset
@@ -3801,7 +3842,7 @@ key "mauch2015computer"
  Note that measuring transcription accuracy remains outside the scope of
  this study.
 \begin_inset Note Comment
-status collapsed
+status open
 
 \begin_layout Plain Layout
 annotation of vocal parts results practically in zero onsets detected in
@@ -3903,11 +3944,19 @@ reference "eq:note_onset_trans_prob"
 \end_inset
 
 .
- For Turkish makam the onset detection accuracy peaked at w=1.2 and 
+ For Turkish makam the onset detection accuracy peaks at 
+\begin_inset Formula $w=1.2$
+\end_inset
+
+ and 
 \begin_inset Formula $\sigma=30\thinspace ms$
 \end_inset
 
-, whereas for the English pop optimal are w=1.1 and 
+, whereas for the English pop optimal are 
+\begin_inset Formula $w=1.1$
+\end_inset
+
+ and 
 \begin_inset Formula $\sigma=45\thinspace ms$
 \end_inset
 
@@ -3929,6 +3978,16 @@ TODO box-plot chart with different values of weight w.
 \end_inset
 
 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\end_layout
+
+\end_inset
+
+
 \end_layout
 
 \begin_layout Subsection
@@ -3943,7 +4002,14 @@ status open
 
 \begin_layout Plain Layout
 We extended the python toolbox for beat tracking https://github.com/CPJKU/madmom/
-, which we make available at suppressed for anonymity 
+, which we make available at 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://github.com/georgid/madmom"
+
+\end_inset
+
+ 
 \end_layout
 
 \end_inset
@@ -3962,29 +4028,14 @@ reference "results_all"
 status collapsed
 
 \begin_layout Plain Layout
-per-recoding results can be found in 
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-sheet 2 of 
-\begin_inset Flex URL
-status open
-
-\begin_layout Plain Layout
-
-https://docs.google.com/spreadsheets/d/1f9wyxB6emGHvVGUhIjNQwSxxhOJhPAdNzA2BieyKVX
-w/edit?usp=sharing
-\end_layout
+per-recoding results can be found in sheet 2 of 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://tinyurl.com/kz4mpkz"
 
 \end_inset
 
 
-\end_layout
-
-\end_inset
-
-suppressed for anonymity
 \end_layout
 
 \end_inset
@@ -4037,15 +4088,16 @@ Due to time constraints we did not test the time-redistribution weighting
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-if not onsets are used, the beat detection is still the same, 
+to turn off the state space for notes (in essense, equivalent to madmom's
+ defaults mode):
 \end_layout
 
 \begin_layout Plain Layout
-IMPL: https://GitHub.com/Georgia/pippin/blob/master/pippin/MonoNoteParameters.py#L
+IMPL: https://GitHub.com/Georgid/pippin/blob/master/pippin/MonoNoteParameters.py#L
 68 WITH_NOTE_STATES=0
 \end_layout
 
@@ -4065,6 +4117,19 @@ imply: /Users/joro/workspace/madmom_notes/run_beats
 \end_inset
 
 
+\begin_inset Note Comment
+status open
+
+\begin_layout Plain Layout
+imply: /Users/joro/workspace/madmom_notes/run_note_plus_beats
+\end_layout
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
 \begin_inset Note Comment
 status open
 

@@ -26,8 +26,9 @@ https://github.com/craffel/mir_eval
 
 ## Usage
 MBID=92ef6776-09fa-41be-8661-025f9b33be4f;
-path_rec=/Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/;
-python demo.py $path_rec  $MBID
+REC_URI=/Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/;
+python demo.py $REC_URI  $MBID
+
 
 ### Initialise:  
 Here are the parameters which need to be initialised before executing the main program:  

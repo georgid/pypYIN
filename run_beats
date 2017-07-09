@@ -1,0 +1,30 @@
+Run downbeat detection (standard madmom)
+----------------------------------
+# install. see instructions at
+https://github.com/CPJKU/madmom/
+
+# detect beats one recordin. write output to file
+python ~/workspace/madmom/bin/GMMPatternTracker single  -o $OUTPUT_FILE  $INPUT_AUDIO
+
+#  detect beats one recording
+python ~/workspace/madmom/bin/GMMPatternTracker single $INPUT_AUDIO
+
+
+
+
+
+Eval estimated beats: 
+----------------------------------------------------
+
+
+### convert , to \t if needed 
+for i in `ls $PATH_DATASET/data/*/*.beats`; do tr ',' '\t' <$i >${i}_tab; done
+
+# get list of detected files:
+for i in `ls $PATH_DATASET//experiments/ht_0_0058/*/*.estimatedbeats_norm`; do echo $i; done
+
+
+# eval  beats ( skipping first 5 seconds) 
+python ~/workspace/madmom_notes/bin/evaluate beats -i --ann_dir "/Users/joro/workspace/otmm_vocal_segments_dataset/data/" -a .beats_tab --det_dir "/Users/joro/workspace/otmm_vocal_segments_dataset/experiments/ht_0_0058/" -d .estimatedbeats --skip 5	
+
+NOTE: for reproducing vocal onset detection and evaluation see run_onsets 
