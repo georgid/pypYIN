@@ -230,6 +230,9 @@ class PyinMain(object):
         ----------------------
         pitch_contour :
             only pitch values
+            
+        with_bar_positions: bool
+            metrical-accent aware detection set
         
         Returns
         -----------------------

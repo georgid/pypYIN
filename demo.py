@@ -46,7 +46,8 @@
 
 import json
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
-    WITH_MELODIA, WITH_BEAT_ANNOS, WITH_ONSETS_SAME_PITCH, WITH_NOTES_STATES
+    WITH_MELODIA, WITH_ONSETS_SAME_PITCH, WITH_NOTES_STATES,\
+    WITH_MAKAM
 
 fs = 44100
 frameSize = 2048
@@ -83,21 +84,24 @@ from load_data import load_excerpt, load_beat_anno
 path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
 if path_Alignment_duration not in sys.path:
         sys.path.append(path_Alignment_duration)
-from src.align.FeatureExtractor import extractPredominantPitch
+from src.align.FeatureExtractor import extractPredominantMelodyMakam, extractPredominantMelody
 from makammusicbrainz.audiometadata import AudioMetadata
 
 
 def doit( argv):
     if len(argv) != 4:
 #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
-        sys.exit('usage: {} <data dir>  <rec MBID> <output_dir>'.format(argv[0]))
+        sys.exit('usage: {} <data dir>  <rec MBID> <beat-aware>'.format(argv[0]))
     rec_ID = argv[2]
-    rec_URI = argv[1] + '/' + rec_ID + '/'
+    dataset_dir = argv[1]
+    rec_URI = dataset_dir + '/data/' + rec_ID + '/'
     filename1 = os.path.join(rec_URI, rec_ID + '.wav')
-    beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats' )
+    beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats_tab' )
     excerpt_URI = os.path.join(rec_URI,  'excerpt.txt')
     pitch_file_URI = os.path.join(rec_URI, rec_ID + '.pitch_audio_analysis' )
-    output_dir = argv[3]
+    
+    pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS = int(argv[3]) # if metrical-accent aware detection desired, beats are read from annotations. no automatic beat detection implemented
+    output_dir = create_output_dirs(dataset_dir, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS)  
     
     start_ts, end_ts = load_excerpt(excerpt_URI)
 # initialise
@@ -108,7 +112,7 @@ def doit( argv):
     if WITH_MELODIA: # calculate RMS separately,  which is done internally for pYIN 
         calc_rms(pYinInst, filename1)
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
-    if WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
+    if pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
         bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, 0) #
         usul_type = get_usul_from_rec(rec_ID)
     else:
@@ -131,7 +135,7 @@ def doit( argv):
     
     
     ### get remaining features
-    featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, WITH_BEAT_ANNOS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
+    featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
     
     ########## print note step states
     noteStates = []
@@ -141,7 +145,7 @@ def doit( argv):
 
     featureSet = pYinInst.postprocessPitchTracks(MIDI_pitch_contour, featureSet.m_oMonoNoteOut, WITH_ONSETS_SAME_PITCH) # postprocess to get onsets
     
-    extension = determine_file_with_extension(NUM_SEMITONES, STEPS_PER_SEMITONE, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS=0)
+    extension = determine_file_with_extension(NUM_SEMITONES, STEPS_PER_SEMITONE, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS, WITH_DETECTED_BEATS=0)
     
     MBID = os.path.basename(filename1)[:-4]
     URI_output = os.path.join(output_dir, MBID,  MBID + extension)
@@ -159,9 +163,11 @@ def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, en
     list of estimated pitch values in Hz, at non-vocal returns value <= 0 
     '''
     if WITH_MELODIA:#### predominant melody makam
-        estimatedPitch_andTs = extractPredominantPitch( filename1[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
-    
-    
+        if WITH_MAKAM:
+            estimatedPitch_andTs = extractPredominantMelodyMakam( filename1[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
+        else: # for lakh, use melodia
+            estimatedPitch_andTs = extractPredominantMelody(filename1, frameSize, hopSize)
+            
     else: ######### pYIN 
         audio = ess.MonoLoader(filename = filename1, sampleRate = fs)()
         for frame in ess.FrameGenerator(audio, frameSize=frameSize, hopSize=hopSize):
@@ -212,7 +218,7 @@ def get_usul_from_rec(rec_ID):
     from makammusicbrainz.audiometadata import AudioMetadata
     audioMetadata = AudioMetadata(get_work_attributes=True, print_warnings=True)
     
-    if rec_ID == 'dido': # workaround
+    if WITH_MAKAM == 0: # workaround
         return '44'
     
     audio_meta = audioMetadata.from_musicbrainz(rec_ID)
@@ -276,6 +282,22 @@ def store_results( onsetFrames, URI_output, hop_time ):
     
     print 'mono note decoded onsets written to file \n' + URI_output + '\n'
     f.close()
+    
+def create_output_dirs(data_main_dir, with_beat_annotations=True):
+    
+    if with_beat_annotations:
+        sub_dir = 'experiments/beat_anno/'
+    elif WITH_NOTES_STATES: 
+        sub_dir = 'experiments/ht_0_0058_semitones_' +  str(NUM_SEMITONES) + '_steps_' + str(STEPS_PER_SEMITONE) + '/'  
+    else: # just beat detection with the note-onset+beat capable model
+        sub_dir = 'experiments/ht_0_0058/'
+    
+    experiments_dir =  os.path.join(data_main_dir, sub_dir)
+    if not os.path.exists(experiments_dir):
+        os.mkdir(experiments_dir)
+        
+
+    return experiments_dir   
 
 if __name__ == "__main__":
     

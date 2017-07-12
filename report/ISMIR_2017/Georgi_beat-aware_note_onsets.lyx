@@ -581,7 +581,7 @@ key "holzapfel2014tracking"
 status open
 
 \begin_layout Plain Layout
-The dataset is available at 
+The dataset is decribed at 
 \begin_inset CommandInset href
 LatexCommand href
 name "http://compmusic.upf.edu/node/345"
@@ -616,30 +616,6 @@ The training set spans around 7 minutes of audio from each of the two usuls,
 \begin_layout Standard
 \begin_inset Note Note
 status collapsed
-
-\begin_layout Plain Layout
-\begin_inset Flex URL
-status open
-
-\begin_layout Plain Layout
-
-https://docs.google.com/spreadsheets/d/1f9wyxB6emGHvVGUhIjNQwSxxhOJhPAdNzA2BieyKVX
-w/edit?usp=sharing
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status open
 
 \begin_layout Plain Layout
 TODO: how many are on total note onsets, 
@@ -1659,11 +1635,11 @@ reference "eq:note_onset_trans_prob"
 
  is scaled accordingly to how close in time to a beat it is.
  
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
-imply (`code.MonoNoteParameters.barPositionDist_Probs`)
+impl (`code.MonoNoteParameters.barPositionDist_Probs`)
 \end_layout
 
 \end_inset
@@ -2249,7 +2225,7 @@ We explored the option that beats are given as input from a preprocessing
 \begin_inset Formula $a_{ij}(k)=p(n_{k}=j|n_{k-1}=i,\phi_{k})$
 \end_inset
 
-(see Eq.
+ (see Eq.
  
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -3246,7 +3222,7 @@ Mauch
 \uwave off
 \noun off
 \color none
-23.5
+29.6
 \end_layout
 
 \end_inset
@@ -3267,7 +3243,7 @@ Mauch
 \uwave off
 \noun off
 \color none
-61.2
+38.3
 \end_layout
 
 \end_inset
@@ -3288,7 +3264,7 @@ Mauch
 \uwave off
 \noun off
 \color none
-32.4
+33.2
 \end_layout
 
 \end_inset
@@ -3338,7 +3314,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-29.5
+30.3
 \end_layout
 
 \end_inset
@@ -3359,7 +3335,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-56.2
+42.5
 \end_layout
 
 \end_inset
@@ -3380,7 +3356,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-36.4
+35.1
 \end_layout
 
 \end_inset
@@ -3418,7 +3394,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-26.6
+
 \end_layout
 
 \end_inset
@@ -3427,7 +3403,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-58.4
+
 \end_layout
 
 \end_inset
@@ -3437,18 +3413,6 @@ Ex-2
 
 \begin_layout Plain Layout
 
-\family roman
-\series medium
-\shape up
-\size normal
-\emph off
-\bar no
-\strikeout off
-\uuline off
-\uwave off
-\noun off
-\color none
-33.4
 \end_layout
 
 \end_inset
@@ -3782,19 +3746,6 @@ Vocal onset detection
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-Is portamento in turkish singing another reason 
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 We measured vocal onset accuracy in terms of precision and recall
 \begin_inset Foot
 status open
@@ -3961,7 +3912,38 @@ reference "eq:note_onset_trans_prob"
 \end_inset
 
 .
- Table 1 presents metrics compared to the baseline.
+ Table 
+\begin_inset CommandInset ref
+LatexCommand ref
+reference "results_all"
+
+\end_inset
+
+ presents metrics compared to the baseline
+\begin_inset Foot
+status open
+
+\begin_layout Plain Layout
+Per-recording results for the makam dataset are avaialble at 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://tinyurl.com/y8r73zfh"
+
+\end_inset
+
+ and for the segments dataset at 
+\begin_inset CommandInset href
+LatexCommand href
+target "https://tinyurl.com/y9a67p8u"
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+.
  Inspection of detections showed that the proposed model added some onsets
  around beats, which are missed by the baseline.
  
@@ -3973,16 +3955,6 @@ status open
 
 \begin_layout Plain Layout
 TODO box-plot chart with different values of weight w.
-\end_layout
-
-\end_inset
-
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-
 \end_layout
 
 \end_inset
@@ -4020,23 +3992,6 @@ target "https://github.com/georgid/madmom"
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "results_all"
-
-\end_inset
-
-
-\begin_inset Foot
-status collapsed
-
-\begin_layout Plain Layout
-per-recoding results can be found in sheet 2 of 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://tinyurl.com/kz4mpkz"
-
-\end_inset
-
-
-\end_layout
 
 \end_inset
 
@@ -4089,7 +4044,7 @@ Due to time constraints we did not test the time-redistribution weighting
 
 \begin_layout Standard
 \begin_inset Note Comment
-status open
+status collapsed
 
 \begin_layout Plain Layout
 to turn off the state space for notes (in essense, equivalent to madmom's
@@ -4108,10 +4063,11 @@ IMPL: https://GitHub.com/Georgid/pippin/blob/master/pippin/MonoNoteParameters.py
 
 \begin_layout Standard
 \begin_inset Note Comment
-status open
+status collapsed
 
 \begin_layout Plain Layout
-imply: /Users/joro/workspace/madmom_notes/run_beats
+for both experiments see scripts here: https://github.com/georgid/pypYIN/blob/mas
+ter/run_onsets
 \end_layout
 
 \end_inset
@@ -4121,7 +4077,7 @@ imply: /Users/joro/workspace/madmom_notes/run_beats
 status open
 
 \begin_layout Plain Layout
-imply: /Users/joro/workspace/madmom_notes/run_note_plus_beats
+for beats only : https://github.com/georgid/pypYIN/blob/master/run_beats
 \end_layout
 
 \end_inset
@@ -4131,10 +4087,10 @@ imply: /Users/joro/workspace/madmom_notes/run_note_plus_beats
 
 \begin_layout Standard
 \begin_inset Note Comment
-status open
+status collapsed
 
 \begin_layout Plain Layout
-IMPL: https://GitHub.com/Georgia/pippin/blob/master/report/scripts/eval_beats
+IMPL: https://github.com/georgid/pypYIN/blob/master/eval_beats
 \end_layout
 
 \end_inset
@@ -4144,7 +4100,7 @@ IMPL: https://GitHub.com/Georgia/pippin/blob/master/report/scripts/eval_beats
 status open
 
 \begin_layout Plain Layout
-IMPL: https://GitHub.com/Georgia/pippin/blob/master/report/scripts/eval_onsets
+IMPL: https://github.com/georgid/pypYIN/blob/master/eval_onsets
 \end_layout
 
 \end_inset
@@ -4174,6 +4130,25 @@ Results confirm that the knowledge of the current position in a metrical
  - applying it to singing material with different singing style and meter
  is as easy as tuning its parameters.
  
+\end_layout
+
+\begin_layout Subparagraph*
+Acknowledgements
+\end_layout
+
+\begin_layout Standard
+We thank Sebastian Böck for the implementational hints.
+ Ajay Srinivasamurthy is currently with the Idiap Research Institute, Martigny,
+ Switzerland.
+ 
+\end_layout
+
+\begin_layout Standard
+This work is partly supported by the European Research Council under the
+ European Union’s Seventh Framework Program, as part of the CompMusic project
+ (ERC grant agreement 267583) and partly by the Spanish Ministry of Economy
+ and Competitiveness, through the ”María de Maeztu” Programme for Centres/Units
+ of Excellence in R&D” (MDM-2015-0502).
 \end_layout
 
 \begin_layout Standard

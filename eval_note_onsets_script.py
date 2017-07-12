@@ -2,10 +2,10 @@
 import mir_eval
 import sys
 import os
-from doit_all import list_MBID, ordered_list_MBID, create_output_dirs
+from doit_all import ordered_list_MBID, create_output_dirs
 from demo import WITH_ONSETS_SAME_PITCH, determine_file_with_extension
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
-    WITH_BEAT_ANNOS, WITH_MELODIA
+    WITH_BEAT_ANNOS, WITH_MELODIA, WITH_MAKAM
 
 parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir))
 path_intersect_scripts = os.path.join(parentDir, 'otmm_vocal_segments_dataset/scripts')
@@ -33,7 +33,7 @@ def determine_extension(MBID, output_dir, WITH_BEAT_ANNOS):
 
 
 
-def print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
+def print_eval_onsets_all(data_main_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
     
     print 'computing onset \n same_pitch_onsets ={} \n  with_bar_anno-s = {}, \n  with_detected_beats = {} \n tolerance={},  '.format(WITH_ONSETS_SAME_PITCH, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS, TOLERANCE_TIME) 
     
@@ -42,13 +42,16 @@ def print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
     totalR = 0
     
     for MBID in ordered_list_MBID.keys():
-        output_dir = data_dir + MBID + '/'
-        output_dir = create_output_dirs(data_dir, WITH_BEAT_ANNOS)
+        output_dir = data_main_dir + MBID + '/'
+        output_dir = create_output_dirs(data_main_dir, WITH_BEAT_ANNOS)
         output_dir +=  MBID + '/'
         
-        score_allignment_dir = '/Users/joro/workspace/otmm_audio_score_alignment_dataset/data/'
-        annotation_URI = os.path.join(score_allignment_dir + ordered_list_MBID[MBID][0] + '/' + MBID, 'alignedNotes_vocal.txt')
-        
+        if WITH_MAKAM: # scores for makam in a separate repo
+            score_allignment_dir = '/Users/joro/workspace/otmm_audio_score_alignment_dataset/data/'
+            annotation_URI = os.path.join(score_allignment_dir + ordered_list_MBID[MBID][0] + '/' + MBID, 'alignedNotes_vocal.txt')
+        else: # lakh
+            annotation_URI = os.path.join( data_main_dir, 'data', MBID, 'alignedNotes_vocal.txt')
+
         extension = determine_file_with_extension( NUM_SEMITONES, STEPS_PER_SEMITONE, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS)
 
         estimated_URI = os.path.join(output_dir, MBID + extension)
@@ -80,7 +83,7 @@ def print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS):
 
 def eval_onsets_one_file(TOLERANCE_TIME, argv):
     if len(argv) != 3:
-        sys.exit('usage: {} <annotated onset > <detected >'.format(sys.argv[0]))
+        sys.exit('usage: {} <annotated onset > <estimated >'.format(sys.argv[0]))
     annotation_URI = argv[1]
     estimated_URI = argv[2]
     
@@ -93,16 +96,14 @@ def eval_onsets_one_file(TOLERANCE_TIME, argv):
 
 if __name__ == "__main__":
 
+    if WITH_MAKAM:
+        data_main_dir = '/Users/joro/workspace/otmm_vocal_segments_dataset/'
+    else:
+        data_main_dir = '/Users/joro/workspace/lakh_vocal_segments_dataset/'
     
-#     data_dir = '/Users/joro/workspace/otmm_vocal_segments_dataset/data/'
-#     if len(sys.argv) != 4:
-#         sys.exit('usage: {} <results_path> WITH_BEAT_ANNOS WITH_DETECTED_BEATS'.format(sys.argv[0]))
-#     data_dir = sys.argv[1]    
-#     WITH_BEAT_ANNOS = int(sys.argv[2])
-#     WITH_DETECTED_BEATS = int(sys.argv[3])
-#     print_eval_onsets_all(data_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS)
-#     
-    detected = '/Users/joro/workspace/lakh_vocal_segments_dataset/experiments/beat_anno/dido/dido.onsets.tony_nSemi_35_stepsPSemi_1'
-    annot = '/Users/joro/workspace/lakh_vocal_segments_dataset/data/dido/dido.vocal_anno'
-    F, P, R = eval_onsets_one_file(TOLERANCE_TIME, ['sad', annot, detected])
-    print F,P,R
+    if len(sys.argv) != 3:
+        sys.exit('usage: {}  WITH_BEAT_ANNOS WITH_DETECTED_BEATS'.format(sys.argv[0]))
+    WITH_BEAT_ANNOS = int(sys.argv[1])
+    WITH_DETECTED_BEATS = int(sys.argv[2])
+    print_eval_onsets_all(data_main_dir, WITH_BEAT_ANNOS, WITH_DETECTED_BEATS)
+     

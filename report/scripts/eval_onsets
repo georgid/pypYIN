@@ -1,8 +1,0 @@
-# edit MBID list in doit_all.py
-
-# annotation
-python ~/workspace/pypYIN/eval_note_onsets_script.py /Users/joro/workspace/otmm_vocal_segments_dataset/experiments/beat_anno/ 0 0
-
-# detected beats
-python ~/workspace/pypYIN/eval_note_onsets_script.py /Users/joro/workspace/otmm_vocal_segments_dataset/experiments/ht_0_0058_semitones_35_steps_1/ 0 1
-
