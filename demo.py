@@ -85,7 +85,6 @@ path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
 if path_Alignment_duration not in sys.path:
         sys.path.append(path_Alignment_duration)
 from src.align.FeatureExtractor import extractPredominantMelodyMakam, extractPredominantMelody
-from makammusicbrainz.audiometadata import AudioMetadata
 
 
 def doit( argv):
@@ -114,7 +113,7 @@ def doit( argv):
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
     if pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
         bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, 0) #
-        usul_type = get_usul_from_rec(rec_ID)
+        usul_type = get_meter_from_rec(rec_ID)
     else:
         bar_position_ts = []
         bar_labels = []
@@ -211,16 +210,18 @@ def calc_rms(pYINinstnce, filename1):
 
 
 
-def get_usul_from_rec(rec_ID):
+def get_meter_from_rec(rec_ID):
     '''
-    automatically extract the usul given the recording MB ID
+    automatically extract the meter from the metadata of the recording (MusicBrainzID)
     '''
-    from makammusicbrainz.audiometadata import AudioMetadata
-    audioMetadata = AudioMetadata(get_work_attributes=True, print_warnings=True)
-    
-    if WITH_MAKAM == 0: # workaround
+       
+    if WITH_MAKAM == 0: # for western pop
         return '44'
     
+    # otherwise for makam
+    from makammusicbrainz.audiometadata import AudioMetadata
+    audioMetadata = AudioMetadata(get_work_attributes=True, print_warnings=True)
+
     audio_meta = audioMetadata.from_musicbrainz(rec_ID)
     try:
         usul_type = audio_meta['usul'][0]['attribute_key'] 
