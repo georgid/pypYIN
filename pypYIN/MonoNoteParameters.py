@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 '''
+     This is a set with Parameters  
  * Copyright (C) 2015  Music Technology Group - Universitat Pompeu Fabra
  *
  * This file is part of pypYIN
@@ -17,24 +18,6 @@
  *
  * You should have received a copy of the Affero GNU General Public License
  * version 3 along with this program.  If not, see http://www.gnu.org/licenses/
- *
- * If you have any problem about this python version code, please contact: Rong Gong
- * rong.gong@upf.edu
- *
- * If you have any problem about this algorithm, I suggest you to contact: Matthias Mauch
- * m.mauch@qmul.ac.uk who is the original C++ version author of this algorithm
- *
- * If you want to refer this code, please consider this article:
- *
- * M. Mauch and S. Dixon,
- * “pYIN: A Fundamental Frequency Estimator Using Probabilistic Threshold Distributions”,
- * in Proceedings of the IEEE International Conference on Acoustics,
- * Speech, and Signal Processing (ICASSP 2014), 2014.
- *
- * M. Mauch, C. Cannam, R. Bittner, G. Fazekas, J. Salamon, J. Dai, J. Bello and S. Dixon,
- * “Computer-aided Melody Note Transcription Using the Tony Software: Accuracy and Efficiency”,
- * in Proceedings of the First International Conference on Technologies for
- * Music Notation and Representation, 2015.
 '''
 
 import numpy as np
@@ -47,14 +30,13 @@ pathEvaluation = os.path.join(parentDir, 'AlignmentDuration')
 if pathEvaluation not in sys.path:
     sys.path.append(pathEvaluation)
 
-
 from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
 
 WITH_MAKAM = 0
 
 WITH_BEAT_ANNOS = 0 #  read beats from annotation, if set, it means we do beat-aware note onset detection 
-WITH_MELODIA = 1 # dont change for ISMIR 2017
-WITH_ONSETS_SAME_PITCH = 0 # dont change for ISMIR 2017 
+WITH_MELODIA = 0 # use melodia for pitch tracking. =1 to reproduce results of ISMIR 2017 paper
+WITH_ONSETS_SAME_PITCH = 0 # detect onsets on same pitch. ==0 to reproduce results of ISMIR 2017 paper 
 
 
 STEPS_PER_SEMITONE = 1
@@ -63,7 +45,7 @@ NUM_SEMITONES = 35
 # STEPS_PER_SEMITONE = 2
 # NUM_SEMITONES = 15
 
-PITCH_PROB = 0.9 
+PITCH_PROB = 0.9  # prior probabilitiy of voice being pitch
 
 ################ WITH BEAT DETECTION ###############################
 WITH_NOTES_STATES = 0 # no note states, e.g. decoding equivalent to the default Pattern Tracking Processor.  

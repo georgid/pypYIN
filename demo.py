@@ -1,7 +1,7 @@
     # -*- coding: utf-8 -*-
 
 '''
- * Copyright (C) 2015  Music Technology Group - Universitat Pompeu Fabra
+ * Copyright (C) 2017  Music Technology Group - Universitat Pompeu Fabra
  *
  * This file is part of pypYIN
  *
@@ -17,29 +17,6 @@
  *
  * You should have received a copy of the Affero GNU General Public License
  * version 3 along with this program.  If not, see http://www.gnu.org/licenses/
- *
- * If you have any problem about this python version code, please contact: Rong Gong
- * rong.gong@upf.edu
- *
- * If you have any problem about this algorithm, I suggest you to contact: Matthias Mauch
- * m.mauch@qmul.ac.uk who is the original C++ version author of this algorithm
- *
- * If you want to refer this code, please consider this article:
- *
- * M. Mauch and S. Dixon,
- * ‚Äö√Ñ√∂‚àö√ë‚àö‚à´pYIN: A Fundamental Frequency Estimator Using Probabilistic Threshold Distributions‚Äö√Ñ√∂‚àö√ë‚àöœÄ,
- * in Proceedings of the IEEE International Conference on Acoustics,
- * Speech, and Signal Processing (ICASSP 2014), 2014.
- *
- * M. Mauch, C. Cannam, R. Bittner, G. Fazekas, J. Salamon, J. Dai, J. Bello and S. Dixon,
- * ‚Äö√Ñ√∂‚àö√ë‚àö‚à´Computer-aided Melody Note Transcription Using the Tony Software: Accuracy and Efficiency‚Äö√Ñ√∂‚àö√ë‚àöœÄ,
- * in Proceedings of the First International Conference on Technologies for
- * Music Notation and Representation, 2015.
-
-
-
-
-
 '''
 
 
@@ -81,10 +58,7 @@ path_intersect_scripts = os.path.join(parentDir, 'otmm_vocal_segments_dataset/sc
 if path_intersect_scripts not in sys.path:
         sys.path.append(path_intersect_scripts)
 from load_data import load_excerpt, load_beat_anno
-path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
-if path_Alignment_duration not in sys.path:
-        sys.path.append(path_Alignment_duration)
-from src.align.FeatureExtractor import extractPredominantMelodyMakam, extractPredominantMelody
+
 
 
 def doit( argv):
@@ -108,7 +82,7 @@ def doit( argv):
 #     filename1 = srcpath + '/../vignesh.wav'
     pYinInst = pypYIN.pYINmain.PyinMain()
     pYinInst.initialise(channels=1, inputSampleRate=fs, stepSize=hopSize, blockSize=frameSize, lowAmp=0.25, onsetSensitivity=0.7, pruneThresh=0.1)
-    if WITH_MELODIA: # calculate RMS separately,  which is done internally for pYIN 
+    if WITH_MELODIA: # calculate RMS as a preprocessing step, ( done internally for pYIN pitch extraction) 
         calc_rms(pYinInst, filename1)
     #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
     if pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
@@ -162,6 +136,11 @@ def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, en
     list of estimated pitch values in Hz, at non-vocal returns value <= 0 
     '''
     if WITH_MELODIA:#### predominant melody makam
+        path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
+        if path_Alignment_duration not in sys.path:
+            sys.path.append(path_Alignment_duration)
+        from src.align.FeatureExtractor import extractPredominantMelodyMakam, extractPredominantMelody
+        
         if WITH_MAKAM:
             estimatedPitch_andTs = extractPredominantMelodyMakam( filename1[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
         else: # for lakh, use melodia
