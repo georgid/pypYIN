@@ -25,9 +25,7 @@ Essentia
 https://github.com/craffel/mir_eval 
 
 ## Usage
-MBID=92ef6776-09fa-41be-8661-025f9b33be4f;
-REC_URI=/Users/joro/workspace/otmm_vocal_segments_dataset/data/92ef6776-09fa-41be-8661-025f9b33be4f/;
-python demo.py $REC_URI  $MBID
+python demo.py <data directory>  <recording musicbrainz id> <using beats>
 
 ## License
  Copyright (C) 2017  Music Technology Group - Universitat Pompeu Fabra  
@@ -47,19 +45,17 @@ python demo.py $REC_URI  $MBID
  You should have received a copy of the Affero GNU General Public License  
  version 3 along with this program.  If not, see http://www.gnu.org/licenses/  
 
+## Citation
+
+Georgi Dzhambazov, André Holzapfel, Ajay Srinivasamurthy, Xavier Serra, Metrical-Accent Aware Vocal Onset Detection in Polyphonic Audio, In Proceedings of ISMIR 2017
+
+
+## Contact
  If you have any problem about this python version code, please contact:
  georgi.dzhambazov@upf.edu  
  
  If you have any problem about this algorithm, I suggest you to contact: Matthias Mauch  
- m.mauch@qmul.ac.uk who is the original C++ version author of this algorithm  
- 
- If you want to refer this code, please consider these articles: 
- 
- > M. Mauch and S. Dixon,  
- > “pYIN: A Fundamental Frequency Estimator Using Probabilistic Threshold Distributions”,  
- > in Proceedings of the IEEE International Conference on Acoustics,  
- > Speech, and Signal Processing (ICASSP 2014), 2014.  
- 
+ m.mauch@qmul.ac.uk who is the original C++ version author of this algorithm or consider the paper 
  > M. Mauch, C. Cannam, R. Bittner, G. Fazekas, J. Salamon, J. Dai, J. Bello and S. Dixon,  
  > “Computer-aided Melody Note Transcription Using the Tony Software: Accuracy and Efficiency”,  
  > in Proceedings of the First International Conference on Technologies for  
