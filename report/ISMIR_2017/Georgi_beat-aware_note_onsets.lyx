@@ -20,7 +20,7 @@
 
 \usepackage{ismir}
 \usepackage{cite}\usepackage{url}
-
+\usepackage[hyphenbreaks]{breakurl}
 
 % Title.
 % ------
@@ -47,10 +47,10 @@
 
 % Three addresses
 % --------------
-\threeauthors
-  {First Author} {Affiliation1 \\ {\tt author1@ismir.edu}}
-  {Second Author} {\bf Retain these fake authors in\\\bf submission to preserve the formatting}
-  {Third Author} {Affiliation3 \\ {\tt author3@ismir.edu}}
+% \threeauthors
+%  {First Author} {Affiliation1 \\ {\tt author1@ismir.edu}}
+%  {Second Author} {\bf Retain these fake authors in\\\bf submission to preserve the formatting}
+%  {Third Author} {Affiliation3 \\ {\tt author3@ismir.edu}}
 
 %% To make customize author list in Creative Common license, uncomment and customize the next line
 %  \def\authorname{First Author, Second Author, Third Author}
@@ -69,17 +69,18 @@
 
 
 \multauthor
-{  \hspace{0.6cm}Georgi Dzhambazov$^1$\hspace{0.1cm} Andre Holzapfel$^2$} { \bfseries{ Ajay Srinivasamurthy$^1$ \hspace{0.1cm}Xavier Serra$^1$}\\
+{  Georgi Dzhambazov$^1$\hspace{1.5cm} Andre Holzapfel$^2$} { \bfseries{ Ajay Srinivasamurthy$^1$ \hspace{1.8cm}Xavier Serra$^1$}\\
 $^1$  Music Technology Group, Universitat Pompeu Fabra, Barcelona, Spain\\
 $^2$ Media Technology and Interaction Design, KTH Royal Institute of Technology, Stockholm, Sweden\\
 %$^3$  Company, Address\\
-{\tt\small georgi.dzhambazov@upf.edu}
+{\tt\small \{georgi.dzhambazov,ajays.murthy,xavier.serra\}@upf.edu, holzap@kth.se}\\
 }
-\def\authorname{Georgi Dzhambazov, Andre Holzapfel, Ajay Srinivasamurthy, Xavier Serra }
+\def\authorname{Georgi Dzhambazov, Andre Holzapfel, Ajay Srinivasamurthy, Xavier Serra}
 
 
 \sloppy % please retain sloppy command for improved formatting
 \end_preamble
+\options a4paper
 \use_default_options false
 \maintain_unincluded_children false
 \language english
@@ -239,21 +240,20 @@ key "benetos2013automatic"
 
 .
  In particular, singing voice poses a challenge to transcription algorithms
- because of its high degree of expressive elements such as soft onsets,
- portamento and vibrato.
+ because of its soft onsets, and phenomena such as portamento and vibrato.
  One of the core subtasks of singing voice transcription (SVT) is detecting
  note events with a discrete pitch value, an onset time and an offset time
  from the estimated time-pitch representation.
- Detecting the times of vocal note onsets can benefit from automatically
- detected events from complementary musical facets, such as musical meter.
+ Detecting the time locations of vocal note onsets can benefit from automaticall
+y detected events from musical facets, such as musical meter.
  
 \color black
-In fact, the accents in a metrical cycle determine to a large extent the
+In fact, the accents in the metrical cycle determine to a large extent the
  temporal backbone of singing melody lines.
  
 \color inherit
-Studies on symbolic music data showed that the timestamps where vocal note
- onsets occur are influenced by the their position in a metrical cycle 
+Studies on sheet music showed that the locations of vocal note onsets are
+ influenced by the their position in a metrical cycle 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "huron2006sweet,holzapfel2015relation"
@@ -261,11 +261,21 @@ key "huron2006sweet,holzapfel2015relation"
 \end_inset
 
 .
+ Despite that, there have been few studies on meter aware analysis of onsets
+ in music audio 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "degara2010note"
+
+\end_inset
+
+.
+ 
 \end_layout
 
 \begin_layout Standard
 In this work we propose a novel probabilistic model that tracks simultaneously
- note onsets of singing voice and instumental energy accents in a metrical
+ note onsets of singing voice and instrumental energy accents in a metrical
  cycle.
  We extend a state of the art model for beat and meter tracking, based on
  dynamic Bayesian networks (DBN).
@@ -273,11 +283,9 @@ In this work we propose a novel probabilistic model that tracks simultaneously
  their interaction with metrical position.
  The proposed model is applied for the automatic detection of vocal note
  onsets in multi-instrumental recordings with predominant singing voice.
- Vocal melody contours are input from an external predominant voice estimation
- algorithm.
  Evaluation is carried out on datasets from music traditions, for which
  there is a clear correlation between metrical accents and the onset times
- on the vocal line.
+ in the vocal line.
 \end_layout
 
 \begin_layout Section
@@ -285,10 +293,14 @@ Related Work
 \end_layout
 
 \begin_layout Subsection
-Singing voice transcription
+Singing Voice Transcription
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
 In the case of monophonic singing the more successful approaches are based
  on discontinuities in pitch contours 
 \begin_inset CommandInset citation
@@ -300,7 +312,11 @@ key "mcnab1995signal"
 .
  The idea is usually referred to as ‘island building’ groups candidate onsets
  in time and has been the basis for other works.
- A probabilistic note HMM is presented in 
+\end_layout
+
+\end_inset
+
+ A probabilistic note hidden Markov model (HMM) is presented in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "ryynanen2004probabilistic"
@@ -310,7 +326,12 @@ key "ryynanen2004probabilistic"
 , where a note has 3 states: attack (onset), stable pitch state and silent
  state.
  The transition probabilities are learned from data.
- Later this approach has been extended by adding a separate HMM for regions
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+Later this approach has been extended by adding a separate HMM for regions
  of transition between the steady notes 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -319,6 +340,10 @@ key "krige2008explicit"
 \end_inset
 
 .
+\end_layout
+
+\end_inset
+
  Recently 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -326,11 +351,11 @@ key "mauch2015computer"
 
 \end_inset
 
- suggested to compact the musical knowledge into rules as a way to describe
+ suggested to compact musical knowledge into rules as a way to describe
  the observation and transition likelihoods, instead of learning them from
  data.
- The authors cover a range with distinct pitch from lowest MIDI C2 up to
- B7.
+ The authors suggest covering a range with distinct pitch from lowest MIDI
+ C2 up to B7.
  
 \color black
 Each MIDI pitch is further divided into 3 sub-pitches, resulting in 
@@ -341,7 +366,7 @@ Each MIDI pitch is further divided into 3 sub-pitches, resulting in
  
 \color inherit
 Although being conceptually capable of tracking onsets in singing voice
- audio with accompaniments, these approaches were tested only on a cappella
+ audio with accompaniment, these approaches were tested only on a cappella
  singing.
  
 \end_layout
@@ -349,26 +374,33 @@ Although being conceptually capable of tracking onsets in singing voice
 \begin_layout Standard
 In multi-instrumental recordings, an essential first step is to extract
  reliably the predominant vocal melody.
- One of the few works dealing with SVT for polyphonic recordings 
+ There have been few works dealing with SVT in multi-instrumental recordings
+ in general 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "kroher2015automatic,NishikimiNIY16"
 
 \end_inset
 
- rely on the algorithm of for predominant melody extraction 
+, and with onset detection, in particular 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "salamon2012melody"
+key "chang2014pairwise"
 
 \end_inset
 
 .
- Time deviations of sung vocal onsets from the onsets indicated in musical
- score are modeled in a probabilistic way in 
+ Some of them 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "NishikimiNIY16"
+key "kroher2015automatic,NishikimiNIY16"
+
+\end_inset
+
+ rely on the algorithm  for predominant melody extraction of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "salamon2012melody"
 
 \end_inset
 
@@ -378,6 +410,15 @@ key "NishikimiNIY16"
 status collapsed
 
 \begin_layout Plain Layout
+ Time deviations of sung vocal onsets from the onsets indicated in musical
+ score are modeled in a probabilistic way in 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "NishikimiNIY16"
+
+\end_inset
+
+.
  THIS NOTE RELEVANT: In flamenco some musical aspects evince significant
  deviations from the principles of Western music style.
  From this perspective the authors suggest a tradition-specific approach.
@@ -399,13 +440,10 @@ key "dzhambazov2016onsetLyrics_ismir"
 \end_inset
 
 
-\end_layout
-
-\begin_layout Standard
-
 \color red
+
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 
@@ -418,11 +456,10 @@ URGENT: In general vocal note onsets are divided into two types: with a
 \end_inset
 
 
-\end_layout
+\color inherit
 
-\begin_layout Standard
 \begin_inset Note Note
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Finally, dynamic Bayesian networks (DBNs) were proposed in Raczyński et
@@ -444,20 +481,6 @@ Beat Detection
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-say why beat detecton.
- Metrical accents (in particular beats)
-\end_layout
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
 Recently a Bayesian approach, referred to as the 
 \emph on
 bar-pointer
@@ -475,8 +498,12 @@ key "whiteley:06:ismir"
  musical bar).
  
 \color black
-The model represents as hidden variables in a hidden Markov model (HMM)
- the current position in a bar, the tempo, and the type of musical meter.
+The model represents as hidden variables in a 
+\color inherit
+Dynamic Bayesian network (DBN)
+\color black
+ the current position in a bar, the tempo, and the type of musical meter,
+ which can be referred to as bar-tempo state space.
 \end_layout
 
 \begin_layout Standard
@@ -487,7 +514,7 @@ key "holzapfel2014tracking"
 
 \end_inset
 
- applied this model to recordings from non-Western music, in order handle
+ applied this model to recordings from non-Western music, in order to handle
  jointly beat and downbeat tracking.
  The authors showed that the original model can be adapted to different
  rhythmic styles and time signatures, and an evaluation is presented on
@@ -498,29 +525,15 @@ key "holzapfel2014tracking"
 \begin_layout Standard
 
 \color black
-A modification of the bar-tempo state used in this work that optimizes its
- size, was later suggested by 
+Later 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "krebs:15:ismir"
 
 \end_inset
 
-.
- 
-\color red
-
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-
-\color red
-describe the efficient state space
-\end_layout
-
-\end_inset
-
+ suggested a modification of the bar-tempo state space, in order to reduce
+ the computational burden from its huge size.
  
 \end_layout
 
@@ -542,7 +555,7 @@ why these traditions
 \end_layout
 
 \begin_layout Subsection
-Turkish makam
+Turkish Makam
 \begin_inset CommandInset label
 LatexCommand label
 name "subsec:Turkish-makam"
@@ -553,7 +566,22 @@ name "subsec:Turkish-makam"
 \end_layout
 
 \begin_layout Standard
-The Turkish dataset is a subset of the dataset, presented in 
+The Turkish dataset has two meter types, referred to as usuls in Turkish
+ makam: the 9/8-usul aksak and the 8/8-usul d
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\backslash
+"u}
+\end_layout
+
+\end_inset
+
+yek.
+ It is a subset of the dataset presented in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "holzapfel2014tracking"
@@ -561,11 +589,7 @@ key "holzapfel2014tracking"
 \end_inset
 
 , including only the recordings with singing voice present.
- The first author divided it into training and test parts.
- The test dataset comprises 5 1-minute excerpts from recordings with solo
- singing voice for each of two meter classes, referred to as usuls in Turkish
- makam: the 9/8-usul aksak and the 8/8-usul düyek.
- The beats and downbeats were annotated in the previous work 
+ The beats and downbeats were annotated by 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "holzapfel2014tracking"
@@ -573,19 +597,22 @@ key "holzapfel2014tracking"
 \end_inset
 
 .
- The vocal note onsets are annotated by the first author, wherein only pitched
- onsets are we considered.
- To his end, if a syllable starts with an unvoiced consonant, the onset
- in placed at the beginning of the succeeding voiced phoneme
+ The vocal note onsets are annotated by the first author, whereby only pitched
+ onsets are considered (2100 onsets).
+ To this end, if a syllable starts with an unvoiced consonant, the onset
+ is placed at the beginning of the succeeding voiced phoneme
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-The dataset is decribed at 
-\begin_inset CommandInset href
-LatexCommand href
-name "http://compmusic.upf.edu/node/345"
-target "http://compmusic.upf.edu/node/345"
+The dataset is described at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+http://compmusic.upf.edu/node/345
+\end_layout
 
 \end_inset
 
@@ -595,56 +622,34 @@ target "http://compmusic.upf.edu/node/345"
 \end_inset
 
 .
- Interestingly, in makam each usul has a characteristic pattern of beat
- positions, on which percussive strokes are hit.
- For example, in 
-\emph on
-aksak
-\emph default
- the beats 1,3,4,5,7 and 9 have strokes.
- Percussionists of Turkish makam tend to observe these patterns rather conservat
-ively.
+ 
 \end_layout
 
 \begin_layout Standard
-The training set spans around 7 minutes of audio from each of the two usuls,
- annotated also manually with beats and downbeats.
+For this study we divided the dataset into training and test subsets.
+ The test dataset comprises 5 1-minute excerpts from recordings with solo
+ singing voice only for each of the two usuls (on total 780 onsets).
+ The training dataset spans around 7 minutes of audio from each of the two
+ usuls.
  Due to the scarcity of material with solo singing voice, several excerpts
- with choir sections were included.
-\end_layout
-
-\begin_layout Standard
-\begin_inset Note Note
-status collapsed
-
-\begin_layout Plain Layout
-TODO: how many are on total note onsets, 
-\end_layout
-
-\begin_layout Plain Layout
-how many for each usul
-\end_layout
-
-\end_inset
-
-
+ with choir sections were included in the training data.
 \end_layout
 
 \begin_layout Subsection
-English pop
+English Pop
 \end_layout
 
 \begin_layout Standard
 The datasets, on which singing voice transcription in multi-instrumental
- music is evaluated, are limited and small 
+ music is evaluated, are very few 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "benetos2013automatic"
 
 \end_inset
 
-: Often a subset of the RWC dataset is employed that contains only 6 minutes
- of audio 
+: Often a subset of the RWC dataset is employed, which does not contain
+ diverse genres and singers 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "Goto02rwcmusic"
@@ -652,9 +657,12 @@ key "Goto02rwcmusic"
 \end_inset
 
 .
- To overcome this bias, we compiled a new one: We selected 10 30-second
- audio clips of English pop songs, which have been aligned to their correspondin
-g MIDIs in a recent study 
+ To overcome this bias, we compiled the 
+\emph on
+lakh-vocal-segments
+\emph default
+ dataset: We selected 14 30-second audio clips of English pop songs, which
+ have been aligned to their corresponding MIDIs in a recent study 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "raffel2016learning"
@@ -662,40 +670,23 @@ key "raffel2016learning"
 \end_inset
 
 .
- The clips are the 30-second thumbnails of the Million Song Dataset
-\begin_inset Foot
-status open
-
-\begin_layout Plain Layout
-\begin_inset CommandInset href
-LatexCommand href
-target "http://colinraffel.com/projects/lmd/"
-
-\end_inset
-
-
-\end_layout
-
-\end_inset
-
-.
- All of them are in 4/4 meter.
- Criteria for selecting the clips are the predominance of the vocal line
- and the presence of percussive accompaniment.
- We derived the timestamps of the vocal onsets from the aligned vocal MIDI
- channel, whereby we verified by listening that their locations are precise.
- Clips with even slight vocal misalignments were not considered.
- Additionally, we added annotations for segments where singing voice is
- present.
+ Criteria for selecting the clips are the predominance of the vocal line;
+ 4/4 meter; correlation between the beats and the onset times.
+ We derived the locations of the vocal onsets (850 on total) from the aligned
+ vocal MIDI channel, whereby some imprecise locations were manually corrected.
  To encourage further studies on singing voice transcription we make available
  the derived annotations
 \begin_inset Foot
 status open
 
 \begin_layout Plain Layout
-\begin_inset CommandInset href
-LatexCommand href
-target "https://github.com/georgid/lakh_vocal_segments_dataset"
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/georgid/lakh_vocal_segments_dataset
+\end_layout
 
 \end_inset
 
@@ -717,25 +708,25 @@ The proposed approach extends the beat and meter tracking model, presented
  in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs:15:ismir"
 
 \end_inset
 
 .
  
 \color black
-We adopt from that model the variables for the position in a metircal cycle
- (bar position) 
+We adopt from it the variables for the position in the metircal cycle (bar
+ position) 
 \begin_inset Formula $\phi$
 \end_inset
 
-, the instantaneous tempo 
+ and the instantaneous tempo 
 \color inherit
 
 \begin_inset Formula $\dot{\phi}$
 \end_inset
 
- and the rhythmic pattern r, related to the metrical cycle type.
+.
  We also adopt the observation model, which describes how
 \color black
  the metrical accents (beats) are related to an observed onset feature vector
@@ -755,16 +746,14 @@ reference "dbn"
 \end_inset
 
 ).
-\end_layout
-
-\begin_layout Standard
-In this paper we study how the 
+ We consider that the 
 \emph on
 a priori
 \emph default
  probability of a note at a specific metrical accent interacts with the
  probability of observing a vocal note onset.
- To represent that interaction we add a hidden state for vocal note 
+ To represent that interaction we add a hidden state for the temporal segment
+ of a vocal note 
 \emph on
 n
 \emph default
@@ -790,7 +779,7 @@ status collapsed
 \begin_layout Plain Layout
 \align center
 \begin_inset Graphics
-	filename /Users/joro/Dropbox/LyxPhDThesis/Phd_Figs/note_bar_DBN.jpeg
+	filename note_bar_DBN.eps
 	lyxscale 10
 	width 100col%
 
@@ -828,8 +817,8 @@ name "dbn"
 \end_layout
 
 \begin_layout Standard
-In a DBN, an observed sequence of features derived from an audio signal
- 
+In the proposed DBN, an observed sequence of features derived from an audio
+ signal 
 \begin_inset Formula $y_{1:K}=\{y,..,y_{K}\}$
 \end_inset
 
@@ -840,13 +829,10 @@ In a DBN, an observed sequence of features derived from an audio signal
 , where K is the length of the sequence (number of audio frames in an audio
  excerpt).
  The joint probability distribution of hidden and observed variables factorizes
- as:
-\end_layout
-
-\begin_layout Standard
+ as: 
 \begin_inset Formula 
 \begin{equation}
-P(x_{1:K},y_{1:K})=P(x_{0})\Pi_{k=1}^{K}P(x_{k}|x_{k-1})P(y_{k}|x_{k})\label{eq:inference}
+P(x_{1:K},y_{1:K})=P(x_{0})\Pi_{k=1}^{K}P(x_{k}|x_{k-1})P(y_{k}|x_{k})
 \end{equation}
 
 \end_inset
@@ -883,26 +869,30 @@ where
 \end_layout
 
 \begin_layout Subsection
-Hidden variables
+Hidden Variables
 \end_layout
 
 \begin_layout Standard
-At each audio frame k, the hidden variables describe the state of a hypothetical
- bar pointer 
-\begin_inset Formula $x_{k}=[\dot{\phi_{k}},\phi_{k},n_{k},r_{k}]$
+At each audio frame 
+\begin_inset Formula $k$
 \end_inset
 
-, representing the instantaneous tempo, the bar position, the note state,
- and a rhythmic pattern indicator, respectively.
+, the hidden variables describe the state of a hypothetical bar pointer
+ 
+\begin_inset Formula $x_{k}=[\dot{\phi_{k}},\phi_{k},n_{k}]$
+\end_inset
+
+, representing the instantaneous tempo, the bar position and the vocal note
+ respectively.
  
 \end_layout
 
 \begin_layout Subsubsection
-Tempo state 
+Tempo State 
 \begin_inset Formula $\dot{\phi}$
 \end_inset
 
- and bar position state 
+ and Bar Position State 
 \begin_inset Formula $\phi$
 \end_inset
 
@@ -921,7 +911,7 @@ The bar position
 \begin_inset Formula $\dot{\phi}$
 \end_inset
 
- encodes how much bar positions the pointer advances from the current to
+ encodes how many bar positions the pointer advances from the current to
  the next time instant.
  To assure feasible computational time we relied on the combined bar-tempo
  efficient state space, presented in 
@@ -974,7 +964,7 @@ The total number of bar positions
 \end_inset
 
 To keep the size of the bar-tempo state space small, we input the ground
- truth tempo for each recording, allowing 
+ truth tempo for each recording, allowing a range for 
 \color inherit
 
 \begin_inset Formula $\dot{\phi}$
@@ -982,21 +972,38 @@ To keep the size of the bar-tempo state space small, we input the ground
 
 
 \color black
- to deviate within 
+ within 
 \begin_inset Formula $\pm10$
 \end_inset
 
- bpm from it.
- Another motivation to limit the tempo in such a way is avoiding possible
- octave errors in the beat tracking, which would not be desirable for beat-aware
- note onset detection.
+ bpm from it, in order to accommodate gradual tempo changes.
+ This was the minimal margin at which beat tracking accuracy did not degrade
+ substantially.
+ For a study with data with higher stylistic diversity, it would make sense
+ to increase it to at least 20% as it is done in 
+\begin_inset CommandInset citation
+LatexCommand cite
+after "Section 5.2"
+key "holzapfel2016bayesian"
+
+\end_inset
+
+.
  This yields around 100-1000 states for the bar positions within a single
- beat (around 10K for usuls and around 5K for 4/4) .
+ beat (in the order of 
+\begin_inset Formula $5000$
+\end_inset
+
+ for 4 beats, and 
+\begin_inset Formula $10000$
+\end_inset
+
+ for 8-9 beats for the usuls ).
 \end_layout
 
 \begin_layout Subsubsection
-Note state 
-\begin_inset Formula $n_{k}$
+Vocal Note State 
+\begin_inset Formula $n$
 \end_inset
 
 
@@ -1010,7 +1017,7 @@ name "subsec:Note-state"
 \end_layout
 
 \begin_layout Standard
-The note states represent the temporal segments of a sung note.
+The vocal note states represent the temporal segments of a sung note.
  They are a modified version of these suggested in the note transcription
  model of 
 \begin_inset CommandInset citation
@@ -1033,27 +1040,6 @@ key "mauch2015computer"
  
 \end_layout
 
-\begin_layout Subsubsection
-Rhythmic pattern 
-\begin_inset Formula $r_{k}$
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-A rhythmic patterns indicates the pattern of accents in a metrical cycle.
- For simplicity we use only one rhythmic pattern for each metric cycle.
- Let also 
-\begin_inset Formula $\theta(r)$
-\end_inset
-
- denote the number of beats in a rhythmic pattern r.
- Since the metrical type for each recording from the dataset is known a
- priori, a hidden state for the rhythm pattern is not modeled explicitly.
- 
-\end_layout
-
 \begin_layout Standard
 \begin_inset VSpace defskip
 \end_inset
@@ -1062,19 +1048,26 @@ A rhythmic patterns indicates the pattern of accents in a metrical cycle.
 \end_layout
 
 \begin_layout Standard
-To be able to represent the DBN as a hidden Markov model, the bar-tempo
- efficient state space is combined with the note state space into a joint
- state space 
+To be able to represent the DBN as an HMM, the bar-tempo efficient state
+ space is combined with the note state space into a joint state space 
 \emph on
 x
 \emph default
 .
  The joint state space is a cartesian product of the two state spaces, resulting
- in up to 10K x 105 = 1M states.
+ in up to 
+\begin_inset Formula $10000$
+\end_inset
+
+
+\begin_inset Formula $\times105\approx1\thinspace$
+\end_inset
+
+M states.
 \end_layout
 
 \begin_layout Subsection
-Transition model
+Transition Model
 \end_layout
 
 \begin_layout Standard
@@ -1090,12 +1083,12 @@ reference "dbn"
 
 \begin_layout Standard
 \begin_inset Formula 
-\begin{equation}
+\[
 \begin{array}{cc}
 P(x_{k}|x_{k-1})= & P(\dot{\phi}_{k}|\dot{\phi}_{k-1})\thinspace\times\\
 P(\phi_{k}|\phi{}_{k-1},\dot{\phi}_{k-1})\thinspace\times & P(n_{k}|n_{k-1},\phi_{k})
 \end{array}
-\end{equation}
+\]
 
 \end_inset
 
@@ -1111,12 +1104,12 @@ The tempo transition probability
 \begin_inset Formula $p(\phi_{k}|\phi_{k-1},\dot{\phi}_{k-1})$
 \end_inset
 
- are the same as in 
+ are the same as in
 \color black
-
+ 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs:15:ismir"
 
 \end_inset
 
@@ -1133,7 +1126,7 @@ key "holzapfel2014tracking"
 \end_layout
 
 \begin_layout Subsubsection
-Note transition probability 
+Note Transition Probability 
 \begin_inset CommandInset label
 LatexCommand label
 name "par:Note-transition-probability"
@@ -1153,7 +1146,7 @@ key "mauch2015computer"
 \end_inset
 
 .
- Let use briefly review it: From a given note segment the only possibility
+ Let us briefly review it: From a given note segment the only possibility
  is to progress to its following note segment.
  To ensure continuity each of the self-transition probabilities is rather
  high, given by constants 
@@ -1263,8 +1256,16 @@ for A, S and N segments respectively (
  
 \color inherit
 The authors assume that it depends on the difference between the pitch values
- of notes i and j and the diffrence can be approximated by a normal distribution
- centered at change of zero (
+ of notes 
+\begin_inset Formula $i$
+\end_inset
+
+ and 
+\begin_inset Formula $j$
+\end_inset
+
+ and it can be approximated by a normal distribution centered at change
+ of zero (
 \begin_inset CommandInset citation
 LatexCommand cite
 key "mauch2015computer"
@@ -1330,7 +1331,7 @@ In this study, we modify
 \begin_inset Formula $P_{N_{i}A_{j}}$
 \end_inset
 
- to allow varation
+ to allow variation
 \color inherit
  in time, depending on the current bar position 
 \begin_inset Formula $\phi_{k}$
@@ -1411,13 +1412,14 @@ cases remain the same.
  
 \end_layout
 
-\begin_layout Paragraph
-Time-window redistribution
-\end_layout
-
 \begin_layout Standard
-In performance singers often advance or delay slightly note onsets in relation
- to the beats.
+
+\series bold
+1.
+ Time-window redistribution weighting:
+\series default
+ Singers often advance or delay slightly note onsets off the location of
+ a beat.
  The work 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -1425,7 +1427,7 @@ key "NishikimiNIY16"
 
 \end_inset
 
- presented an idea of how to handle vocal onsets, time-shifted from a beat,
+ presented an idea on how to model vocal onsets, time-shifted from a beat,
  by stochastic distribution.
  Similarly, 
 \family roman
@@ -1455,8 +1457,8 @@ a normal distribution
 \begin_inset Formula $\mathcal{N}{}_{0,\sigma}$
 \end_inset
 
-, centered around 0 to re-distribute the importance of beats over a time
- window around a beat.
+, centered around 0 to re-distribute the importance of a metrical accent
+ (beat) over a time window around it.
  Let 
 \begin_inset Formula $b_{k}$
 \end_inset
@@ -1588,15 +1590,19 @@ where
 \begin_inset Formula $b^{th}$
 \end_inset
 
- beat in the metrical cycle (b 
+ beat (b 
 \begin_inset Formula $\in$
 \end_inset
 
 
-\begin_inset Formula $\theta(r)$
+\begin_inset Formula $B$
 \end_inset
 
-)
+); 
+\begin_inset Formula $B$
+\end_inset
+
+ is the number of beats in a metrical cycle
 \end_layout
 
 \begin_layout Description
@@ -1614,7 +1620,7 @@ where
 \begin_inset Formula $\phi_{k}$
 \end_inset
 
- to closest beat position 
+ to the position of the closest beat 
 \begin_inset Formula $b_{k}$
 \end_inset
 
@@ -1633,7 +1639,7 @@ reference "eq:note_onset_trans_prob"
 \begin_inset Formula $P_{N_{i}A_{j}}$
 \end_inset
 
- is scaled accordingly to how close in time to a beat it is.
+ is scaled according to how close in time to a beat it is.
  
 \begin_inset Note Comment
 status open
@@ -1647,12 +1653,16 @@ impl (`code.MonoNoteParameters.barPositionDist_Probs`)
 
 \end_layout
 
-\begin_layout Paragraph
-Simple weighting
-\end_layout
-
 \begin_layout Standard
-The transition probability 
+
+\series bold
+2.
+ Simple weighting:
+\series default
+ We also aim at testing a more conservative hypothesis that it is sufficient
+ to approximate the influence of metrical accents only at the locations
+ of beats.
+ To reflect that, we 
 \family roman
 \series medium
 \shape up
@@ -1664,7 +1674,7 @@ The transition probability
 \uwave off
 \noun off
 \color none
-
+modify the 
 \begin_inset Formula $P_{N_{i}A_{j}}$
 \end_inset
 
@@ -1680,12 +1690,12 @@ The transition probability
 \uwave default
 \noun default
 \color inherit
- is modified only at beat positions, i.e.
- the weighting function is set to the peak of 
+ only at bar positions corresponding to beat positions, for which the weighting
+ function is set to the peak of 
 \begin_inset Formula $N_{0,\sigma}$
 \end_inset
 
- only at bar positions corresponding to beat positions, and to 1 elsewhere.
+, and to 1 elsewhere.
 \end_layout
 
 \begin_layout Standard
@@ -1712,7 +1722,7 @@ The transition probability
 \end_inset
 
 
-\begin_inset Note Note
+\begin_inset Note Comment
 status open
 
 \begin_layout Plain Layout
@@ -1737,7 +1747,7 @@ madmom.features.bar_notes_hmm.NoteTransitionModel._construct_trans_probs
 \end_layout
 
 \begin_layout Subsection
-Observation models
+Observation Models
 \end_layout
 
 \begin_layout Standard
@@ -1794,6 +1804,10 @@ reference "eq:inference"
 \end_layout
 
 \begin_layout Standard
+\begin_inset Note Note
+status collapsed
+
+\begin_layout Plain Layout
 \begin_inset Formula 
 \begin{equation}
 \begin{array}{cc}
@@ -1801,6 +1815,61 @@ P(x_{1:K},y_{1:K}^{f},y_{1:K}^{p})=\\
 P(x_{0})\Pi_{k=1}^{K}P(x_{k}|x_{k-1})P(y_{k}^{f}|x_{k})P(y_{k}^{p}|x_{k})
 \end{array}
 \end{equation}
+
+\end_inset
+
+
+\end_layout
+
+\end_inset
+
+
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{equation}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+begin{array}{cc}
+\end_layout
+
+\begin_layout Plain Layout
+
+P(x_{1:K},y_{1:K}^{f},y_{1:K}^{p})=
+\backslash
+
+\backslash
+[3pt]
+\end_layout
+
+\begin_layout Plain Layout
+
+P(x_{0})
+\backslash
+Pi_{k=1}^{K}P(x_{k}|x_{k-1})P(y_{k}^{f}|x_{k})P(y_{k}^{p}|x_{k})
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{array}
+\end_layout
+
+\begin_layout Plain Layout
+
+
+\backslash
+end{equation}
+\end_layout
 
 \end_inset
 
@@ -1845,7 +1914,7 @@ This means essentially that the observation probability can be represented
 \end_layout
 
 \begin_layout Subsubsection
-Accent observation model
+Accent Observation Model
 \end_layout
 
 \begin_layout Standard
@@ -1884,7 +1953,7 @@ In this paper for
 , extracted from the audio signal using the same parameters as in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "krebs2013rhythmic"
+key "krebs:15:ismir"
 
 \end_inset
 
@@ -1896,14 +1965,16 @@ key "holzapfel2014tracking"
 \end_inset
 
 .
- The feature 
+ The feature vector 
 \begin_inset Formula $y^{f}$
 \end_inset
 
  summarizes the energy changes (accents) that are likely to be related to
  the onsets of all instruments together.
- The probability of observing an energy change depends on the position in
- the bar and the rhythmic pattern, 
+ This forms a rhythmic pattern of the accents, characteristic for a given
+ metrical type.
+ The probability of observing an accent thus depends on the position in
+ the rhythmic pattern, 
 \family roman
 \series medium
 \shape up
@@ -1916,14 +1987,14 @@ key "holzapfel2014tracking"
 \noun off
 \color none
 
-\begin_inset Formula $P(y_{k}^{f}|x_{k})=P(y_{k}^{f}|\phi_{k},r_{k})$
+\begin_inset Formula $P(y_{k}^{f}|x_{k})=P(y_{k}^{f}|\phi_{k})$
 \end_inset
 
-
+.
 \end_layout
 
 \begin_layout Subsubsection
-Pitch observation model
+Pitch Observation Model
 \end_layout
 
 \begin_layout Standard
@@ -1943,7 +2014,7 @@ reduces to
 
 
 \color inherit
-, because it depends only the current note state.
+, because it depends only on the current vocal note state.
  We adopt the idea proposed in 
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -1951,7 +2022,7 @@ key "mauch2015computer"
 
 \end_inset
 
- that a vocal note state emits pitch 
+ that a note state emits pitch 
 \begin_inset Formula $y^{p}$
 \end_inset
 
@@ -1959,7 +2030,7 @@ key "mauch2015computer"
  The standard deviation of stable states and the one of the onset states
  are kept the same as in the original model, respectively 0.9 and 5 semitones.
  The melody contour of singing is extracted in a preprocessing step.
- We utilized for the English pop a method for predominant melody extraction
+ We utilized for English pop a method for predominant melody extraction
  
 \begin_inset CommandInset citation
 LatexCommand cite
@@ -1968,15 +2039,21 @@ key "salamon2012melody"
 \end_inset
 
 .
- For the Turkish makam dataset, we instead utilized an algorithm, extended
- from 
+ For Turkish makam, we instead utilized an algorithm, extended from 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "salamon2012melody"
 
 \end_inset
 
- and tailored to Turkish makam.
+ and tailored to Turkish makam 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "atli2014audio"
+
+\end_inset
+
+.
  In both algorithms, each audio frame 
 \begin_inset Formula $k$
 \end_inset
@@ -1985,16 +2062,9 @@ key "salamon2012melody"
 \begin_inset Formula $v_{k}$
 \end_inset
 
- 
-\begin_inset CommandInset citation
-LatexCommand cite
-key "atli2014audio"
-
-\end_inset
-
-
+.
 \begin_inset Note Comment
-status open
+status collapsed
 
 \begin_layout Plain Layout
 IMPL: for now it is constant PROB_PITCHED=0.9 in 
@@ -2010,13 +2080,12 @@ target "https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.
 
 \end_inset
 
-.
  Based on frames with zero probabilities, one can infer which segments are
  vocal and which not.
  Since correct vocal segments is crucial for the sake of this study and
  the voicing estimation of these melody extraction algorithms are not state
- of the art, we preferred to rely on manual vocal annotations and thus assigned
- 
+ of the art, we manually annotated segments with singing voice, and thus
+ assigned 
 \begin_inset Formula $v_{k}=0$
 \end_inset
 
@@ -2055,11 +2124,11 @@ IMPL: posteriorPichedProb in code.MonoNoteHMM.MonoNoteHMM.normalize_obs_probs
 \end_layout
 
 \begin_layout Subsection
-Learning model parameters
+Learning Model Parameters
 \end_layout
 
 \begin_layout Subsubsection
-Accent observation model
+Accent Observation Model
 \begin_inset CommandInset label
 LatexCommand label
 name "subsec:Bar-Observation-model"
@@ -2070,16 +2139,7 @@ name "subsec:Bar-Observation-model"
 \end_layout
 
 \begin_layout Standard
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-todo describe better using tracking the odd paper
-\end_layout
-
-\end_inset
-
-We trained the accent probability patterns 
+We trained the metrical accent probability 
 \family roman
 \series medium
 \shape up
@@ -2092,10 +2152,34 @@ We trained the accent probability patterns
 \noun off
 \color none
 
-\begin_inset Formula $P(y_{k}^{f}|\phi_{k},r_{k})$
+\begin_inset Formula $P(y_{k}^{f}|\phi_{k})$
 \end_inset
 
- for Turkish makam on the training subset of the dataset
+ separately
+\family default
+\series default
+\shape default
+\size default
+\emph default
+\bar default
+\strikeout default
+\uuline default
+\uwave default
+\noun default
+\color inherit
+ for each meter type:
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+ The Turkish meters are trained on the training subset of the makam dataset
 \family default
 \series default
 \shape default
@@ -2115,8 +2199,8 @@ reference "subsec:Turkish-makam"
 \end_inset
 
 ).
- For each usul we trained one rhythmic pattern by fitting a 2-mixture GMM
- on the spectral-flux-like feature vector 
+ For each usul (8/8 and 9/8) we trained a rhythmic pattern by fitting a
+ 2-mixture GMM on the extracted feature vector 
 \begin_inset Formula $y^{f}$
 \end_inset
 
@@ -2124,12 +2208,12 @@ reference "subsec:Turkish-makam"
  Analogously to 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs:15:ismir"
 
 \end_inset
 
- we pooled the bar positions down to 16 patterns per beat.
- For English pop we used the 4/4 pattern trained by 
+, we pooled the bar positions down to 16 patterns per beat.
+ For English pop we used the 4/4 rhythmic pattern, trained by 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "krebs2013rhythmic"
@@ -2144,7 +2228,7 @@ key "krebs2013rhythmic"
 \end_layout
 
 \begin_layout Subsubsection
-Probability of note onset
+Probability of Note Onset
 \end_layout
 
 \begin_layout Standard
@@ -2197,20 +2281,34 @@ key "huron2006sweet"
 \end_inset
 
 .
- Because we do not dispose of a distribution pattern 
+ Due to lack of a distribution pattern 
 \begin_inset Formula $e(b)$
 \end_inset
 
- for English pop, we set it manually with probability of onsets of 0.8 at
- beats 1 and 3 and 0.6 on beats 2 and 4.
+, characteristic for English pop, we set it manually with probabilities
+ 
+\begin_inset Formula $(0.8,0.6,0.8,0.6)$
+\end_inset
+
+ for the 4 beats.
 \end_layout
 
 \begin_layout Subsection
 Inference
 \end_layout
 
+\begin_layout Standard
+We obtain the most optimal state sequence 
+\begin_inset Formula $x_{1:K}$
+\end_inset
+
+ by decoding with the Viterbi algorithm.
+ A note onset is detected when the state path enters an attack note state
+ after being in non-vocal state.
+\end_layout
+
 \begin_layout Subsubsection
-With manually annotated beats
+With Manually Annotated Beats
 \end_layout
 
 \begin_layout Standard
@@ -2220,7 +2318,7 @@ We explored the option that beats are given as input from a preprocessing
  In this case, the detection of vocal onsets can be carried out by a reduced
  model with a single hidden variable: the note state.
  The observation model is then reduced to the pitch observation probability.
- The transition model is reduced to bar-position aware transition probability
+ The transition model is reduced to a bar-position aware transition probability
  
 \begin_inset Formula $a_{ij}(k)=p(n_{k}=j|n_{k-1}=i,\phi_{k})$
 \end_inset
@@ -2238,11 +2336,18 @@ reference "eq:note_onset_trans_prob"
 \color black
  
 \color inherit
-To represent this
+To represent the
 \color black
- time-dependent self-transition probabilities we we utilize time-varying
- transition matrix.
- It falls in the general category of variable-time HMMs (VTHMMs) 
+ time-dependent self-transition probabilities we utilize time-varying transition
+ matrix.
+ 
+\begin_inset Note Note
+status open
+
+\begin_layout Plain Layout
+
+\color black
+It falls in the general category of variable-time HMMs (VTHMMs) 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "johnson2005capacity"
@@ -2250,6 +2355,10 @@ key "johnson2005capacity"
 \end_inset
 
 .
+\end_layout
+
+\end_inset
+
  The standard transition probabilities in the Viterbi maximization step
  are substituted for the bar-position aware transitions 
 \begin_inset Formula $a_{ij}(k)$
@@ -2320,22 +2429,16 @@ key "rabiner1989tutorial"
 \end_layout
 
 \begin_layout Subsubsection
-Full model
+Full Model
 \end_layout
 
 \begin_layout Standard
-We obtain the most optimal state sequence 
-\begin_inset Formula $x_{1:K}$
-\end_inset
-
- by decoding with the well-known Viterbi algorithm.
- A Beat is detected when the bar position variable hits one of 
-\begin_inset Formula $\theta(r)$
+In addition to onsets, a beat is detected when the bar position variable
+ hits one of 
+\begin_inset Formula $B$
 \end_inset
 
  positions of beats within the metrical cycle.
- A vocal note onset is detected when the state path enters an attack note
- state after being in non-vocal state.
  
 \begin_inset Note Note
 status open
@@ -2350,14 +2453,29 @@ comment independence
 \end_layout
 
 \begin_layout Standard
-Note that the size of the state space poses a memory requirement.
- A recording of 1 minute has around 10K frames at a hopsize of 
-\begin_inset Formula $5.8\thinspace ms$
+Note that the size of the state space 
+\begin_inset Formula $x$
 \end_inset
 
-.
- To use Viterbi thus requires to store in memory pointers to up to 4G states,
- which amounts to 40G RAM (with uint32 python data type).
+ poses a memory requirement.
+ A recording of 1 minute has around 
+\begin_inset Formula $10000$
+\end_inset
+
+ frames at a hopsize of 
+\begin_inset Formula $5.8\thinspace$
+\end_inset
+
+ms.
+ To use Viterbi thus requires to store in memory pointers to up to 
+\begin_inset Formula $4\thinspace$
+\end_inset
+
+G states, which amounts to 
+\begin_inset Formula $40\thinspace$
+\end_inset
+
+G RAM (with uint32 python data type).
 \end_layout
 
 \begin_layout Section
@@ -2369,15 +2487,15 @@ The hopsize of computing the spectral flux feature, which resulted in most
  optimal beat detection accuracy in 
 \begin_inset CommandInset citation
 LatexCommand cite
-key "holzapfel2014tracking"
+key "krebs:15:ismir"
 
 \end_inset
 
  is 
-\begin_inset Formula $h_{f}=20\thinspace ms$
+\begin_inset Formula $h_{f}=20\thinspace$
 \end_inset
 
-.
+ms.
  In comparison,
 \series bold
  
@@ -2385,17 +2503,20 @@ key "holzapfel2014tracking"
 the hopsize of predominant vocal melody detection is usually of smaller
  order i.e.
  
-\begin_inset Formula $h_{p}=5.8\thinspace ms$
+\begin_inset Formula $h_{p}=5.8\thinspace$
 \end_inset
 
- (correspondging to 256 frames at sampling rate of 44100).
+ms (corresponding to 256 frames at sampling rate of 44100).
  Preliminary experiments showed that extracting pitch with values of 
 \begin_inset Formula $h_{p}$
 \end_inset
 
- bigger than this values reasonably deteriorated the vocal onset accuracy.
- Therefore in this work we used hopsize of 5.8 ms for the extraction of both
- features.
+ bigger than this values reasonably deteriorates the vocal onset accuracy.
+ Therefore in this work we use hopsize of 
+\begin_inset Formula $5.8\thinspace$
+\end_inset
+
+ms for the extraction of both features.
  The time difference parameter for the spectral flux computation remains
  unaffected by this change in hopsize, because it can be set separately.
  
@@ -2427,9 +2548,13 @@ We ported the original VAMP plugin implementation to python, which is available
 \end_inset
 
 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://github.com/georgid/pypYIN"
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/georgid/pypYIN
+\end_layout
 
 \end_inset
 
@@ -2461,14 +2586,14 @@ key "mauch2015computer"
  We excluded this step in all system variants presented, because it could
  not be integrated in the proposed observation model in a trivial way.
  This means that, essentially, in this paper cases of consecutive same-pitch
- notes are missed, which decreases somewhat the recall compared to the original
+ notes are missed, which decreases inevitably recall, compared to the original
  algorithm.
  
 \begin_inset Float table
 placement t
 wide true
 sideways false
-status collapsed
+status open
 
 \begin_layout Plain Layout
 \align center
@@ -2549,7 +2674,7 @@ Fmeas
 \begin_inset Text
 
 \begin_layout Plain Layout
-düyek
+aksak
 \end_layout
 
 \end_inset
@@ -2680,7 +2805,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-40.4
+37.5
 \end_layout
 
 \end_inset
@@ -2701,7 +2826,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-39.5
+38.4
 \end_layout
 
 \end_inset
@@ -2722,7 +2847,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-39.0
+37.2
 \end_layout
 
 \end_inset
@@ -2825,7 +2950,20 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-aksak
+d
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\backslash
+"u}
+\end_layout
+
+\end_inset
+
+yek
 \end_layout
 
 \end_inset
@@ -2956,7 +3094,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-48.4
+44.3
 \end_layout
 
 \end_inset
@@ -2977,7 +3115,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-39.1
+41.0
 \end_layout
 
 \end_inset
@@ -2998,7 +3136,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-43.0
+41.4
 \end_layout
 
 \end_inset
@@ -3394,7 +3532,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+31.6
 \end_layout
 
 \end_inset
@@ -3403,7 +3541,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-
+39.4
 \end_layout
 
 \end_inset
@@ -3413,6 +3551,18 @@ Ex-2
 
 \begin_layout Plain Layout
 
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\strikeout off
+\uuline off
+\uwave off
+\noun off
+\color none
+34.4
 \end_layout
 
 \end_inset
@@ -3450,7 +3600,7 @@ Mauch
 \begin_inset Text
 
 \begin_layout Plain Layout
-32.8
+34.8
 \end_layout
 
 \end_inset
@@ -3459,7 +3609,7 @@ Mauch
 \begin_inset Text
 
 \begin_layout Plain Layout
-43.1
+35.6
 \end_layout
 
 \end_inset
@@ -3539,7 +3689,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-45.3
+40.6
 \end_layout
 
 \end_inset
@@ -3560,7 +3710,7 @@ Ex-1
 \uwave off
 \noun off
 \color none
-37.9
+39.5
 \end_layout
 
 \end_inset
@@ -3598,7 +3748,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-37.3
+38.1
 \end_layout
 
 \end_inset
@@ -3607,7 +3757,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-45.4
+38.2
 \end_layout
 
 \end_inset
@@ -3616,7 +3766,7 @@ Ex-2
 \begin_inset Text
 
 \begin_layout Plain Layout
-37.2
+38.1
 \end_layout
 
 \end_inset
@@ -3638,7 +3788,7 @@ Ex-2
 \begin_inset Caption Standard
 
 \begin_layout Plain Layout
-Evaluation results for Erperiment 1 (shown as Ex-1) and Experiment 2 (shown
+Evaluation results for Experiment 1 (shown as Ex-1) and Experiment 2 (shown
  as Ex-2).
  Mauch stands for the baseline, following the approach of 
 \begin_inset CommandInset citation
@@ -3671,24 +3821,30 @@ name "results_all"
 \end_layout
 
 \begin_layout Subsection
-Evaluation metrics
+Evaluation Metrics
 \end_layout
 
 \begin_layout Subsubsection
-Beat detection
+Beat Detection
 \end_layout
 
 \begin_layout Standard
 Since improvement of the beat detector is outside the scope of this study,
  we report accuracy of detected beats only in terms of their f-measure
 \begin_inset Foot
-status collapsed
+status open
 
 \begin_layout Plain Layout
 The evaluation script used is at 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://github.com/CPJKU/madmom/blob/master/madmom/evaluation/beats.py"
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+
+\backslash
+burl{https://github.com/CPJKU/madmom/blob/master/madmom/evaluation/beats.py}
+\end_layout
 
 \end_inset
 
@@ -3700,12 +3856,11 @@ target "https://github.com/CPJKU/madmom/blob/master/madmom/evaluation/beats.py"
 .
  This serves solely the sake of comparison to existing work
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 Note that the f-measure is agnostic to the phase of the detected beats,
- which is clearly not optimal.
- 
+ which is clearly not optimal
 \end_layout
 
 \end_inset
@@ -3714,10 +3869,10 @@ Note that the f-measure is agnostic to the phase of the detected beats,
  The f-measure can take a maximum value of 1, while beats tapped on the
  off-beat relative to annotations will be assigned an f-measure of 0.
  We used the default tolerance window of 
-\begin_inset Formula $70\thinspace ms$
+\begin_inset Formula $70\thinspace$
 \end_inset
 
-, also applied in 
+ms, also applied in 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "holzapfel2014tracking"
@@ -3742,20 +3897,25 @@ unlike vocal note onsets, beats are evaluated non only in vocal parts, but
 \end_layout
 
 \begin_layout Subsubsection
-Vocal onset detection
+Vocal Onset Detection
 \end_layout
 
 \begin_layout Standard
 We measured vocal onset accuracy in terms of precision and recall
 \begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+We used the evaluation script available at 
+\begin_inset ERT
 status open
 
 \begin_layout Plain Layout
-We used the evaluation script avaialble at 
-\begin_inset CommandInset href
-LatexCommand href
-name "https://github.com/craffel/mir_eval"
-target "https://github.com/craffel/mir_eval"
+
+
+\backslash
+burl{https://github.com/craffel/mir_eval/blob/master/mir_eval/onset.py#L56}
+\end_layout
 
 \end_inset
 
@@ -3768,10 +3928,10 @@ target "https://github.com/craffel/mir_eval"
  Unlike a cappella singing, the exact onset times of singing voice accompanied
  by instruments, might be much more ambiguous.
  To accommodate this fact, we adopted the tolerance of 
-\begin_inset Formula $t=50\thinspace ms$
+\begin_inset Formula $t=50\thinspace$
 \end_inset
 
-, used for vocal onsets in accompanied flamenco singing by 
+ms, used for vocal onsets in accompanied flamenco singing by 
 \begin_inset CommandInset citation
 LatexCommand cite
 key "kroher2015automatic"
@@ -3779,10 +3939,10 @@ key "kroher2015automatic"
 \end_inset
 
 , which is much bigger than the 
-\begin_inset Formula $t=5ms$
+\begin_inset Formula $t=5\thinspace$
 \end_inset
 
- used by 
+ms used by 
 \begin_inset CommandInset citation
 LatexCommand citet
 key "mauch2015computer"
@@ -3808,7 +3968,7 @@ annotation of vocal parts results practically in zero onsets detected in
 \end_layout
 
 \begin_layout Subsection
-Experiment 1: With manually annotated beats
+Experiment 1: With Manually Annotated Beats
 \end_layout
 
 \begin_layout Standard
@@ -3847,12 +4007,8 @@ reference "par:Note-transition-probability"
 \end_layout
 
 \begin_layout Standard
-We did apply both the simple and the time-redistribution weighting schemes
- for 
-\begin_inset Formula $\Theta(\phi_{k})$
-\end_inset
-
-, presented respectively in Eq.
+We did apply both the simple and the time-redistribution weighting schemes,
+ presented respectively in Eq.
  
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -3870,10 +4026,9 @@ reference "eq:weight_anno"
 
 .
  In preliminary experiments we saw that with annotated beats the simple
- weighting results in much worse onset accuracy than the time-redistributed
+ weighting yields much worse onset accuracy than the time-redistributed
  one.
- Therefore the experimental results reported are conducted with the latter
- weighting scheme.
+ Therefore the results reported are conducted with the latter weighting.
  
 \end_layout
 
@@ -3900,41 +4055,46 @@ reference "eq:note_onset_trans_prob"
 \end_inset
 
  and 
-\begin_inset Formula $\sigma=30\thinspace ms$
+\begin_inset Formula $\sigma=30\thinspace$
 \end_inset
 
-, whereas for the English pop optimal are 
+ms, whereas for the English pop optimal are 
 \begin_inset Formula $w=1.1$
 \end_inset
 
  and 
-\begin_inset Formula $\sigma=45\thinspace ms$
+\begin_inset Formula $\sigma=45\thinspace$
 \end_inset
 
-.
- Table 
-\begin_inset CommandInset ref
-LatexCommand ref
-reference "results_all"
-
-\end_inset
-
- presents metrics compared to the baseline
+ms.
+ Table 1 presents metrics compared to the baseline
 \begin_inset Foot
+status collapsed
+
+\begin_layout Plain Layout
+Per-recording results for the makam dataset are available at 
+\begin_inset Flex URL
 status open
 
 \begin_layout Plain Layout
-Per-recording results for the makam dataset are avaialble at 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://tinyurl.com/y8r73zfh"
+
+https://tinyurl.com/y8r73zfh
+\end_layout
 
 \end_inset
 
- and for the segments dataset at 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://tinyurl.com/y9a67p8u"
+ and for the 
+\emph on
+lakh-vocal-segments
+\emph default
+ dataset at 
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://tinyurl.com/y9a67p8u
+\end_layout
 
 \end_inset
 
@@ -3944,8 +4104,9 @@ target "https://tinyurl.com/y9a67p8u"
 \end_inset
 
 .
- Inspection of detections showed that the proposed model added some onsets
- around beats, which are missed by the baseline.
+ Inspection of detections revealed that the metrical-accent aware model
+ could successfully detect certain onsets close to beats, which are omitted
+ by the baseline.
  
 \end_layout
 
@@ -3963,21 +4124,32 @@ TODO box-plot chart with different values of weight w.
 \end_layout
 
 \begin_layout Subsection
-Experiment 2: Full model 
+Experiment 2: Full Model 
 \end_layout
 
 \begin_layout Standard
-To assure computational efficiency, we did an efficient implemenation of
- the joint state space
+To assure computational efficient decoding, we did an efficient implementation
+ of the joint state space of 
+\begin_inset CommandInset citation
+LatexCommand cite
+key "krebs:15:ismir"
+
+\end_inset
+
+
 \begin_inset Foot
-status open
+status collapsed
 
 \begin_layout Plain Layout
 We extended the python toolbox for beat tracking https://github.com/CPJKU/madmom/
 , which we make available at 
-\begin_inset CommandInset href
-LatexCommand href
-target "https://github.com/georgid/madmom"
+\begin_inset Flex URL
+status open
+
+\begin_layout Plain Layout
+
+https://github.com/georgid/madmom
+\end_layout
 
 \end_inset
 
@@ -3987,8 +4159,11 @@ target "https://github.com/georgid/madmom"
 \end_inset
 
 .
- The average f-measure of detected beats for the different metrical cycles
- can be seen in Table 
+ To compare to that work, we measured the beat detection with both their
+ original implementation and our proposed one.
+ Expectedly, the average f-measure of the detected beats were the same for
+ each of the three metrical cycle types in the datasets, which can be seen
+ in Table 
 \begin_inset CommandInset ref
 LatexCommand ref
 reference "results_all"
@@ -3996,8 +4171,28 @@ reference "results_all"
 \end_inset
 
 .
- The beat tracking accuracy for the Turkish usuls is on par with the results
- reported in 
+ For aksak and d
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\backslash
+"u}
+\end_layout
+
+\end_inset
+
+yek usuls, the accuracy is somewhat worse than the results of 
+\begin_inset Formula $91$
+\end_inset
+
+ and 
+\begin_inset Formula $85.2$
+\end_inset
+
+ respectively, reported in 
 \begin_inset CommandInset citation
 LatexCommand cite
 after "Table 1.a-c, R=1"
@@ -4006,8 +4201,7 @@ key "holzapfel2014tracking"
 \end_inset
 
 .
- The results reported are only with the simple weighting scheme for the
- vocal note onset transition model.
+ We believe the reason is in the smaller size of our training data.
  Table 
 \begin_inset CommandInset ref
 LatexCommand ref
@@ -4015,31 +4209,50 @@ reference "results_all"
 
 \end_inset
 
- shows a reasonable improvement of vocal onset detection accuracy for both
- music traditions.
+ evidences also a reasonable improvement of the vocal onset detection accuracy
+ for both music traditions.
+ The results reported are only with the simple weighting scheme for the
+ vocal note onset transition model (the time-redistribution weighting was
+ not implemented in this experiment).
+ 
 \end_layout
 
 \begin_layout Standard
-For simple weigthing, adding the automatic beat tracking results in improvement
- over the baseline, whereas this was not the case with manual beats.
+Adding the automatic beat tracking improved the baseline, whereas this was
+ not the case with manual beats for simple weighting.
  This suggests that the concurrent tracking of beats and vocal onsets is
- a flexible strategy and can accommodate some vocal onsets, sligthly time-shifte
+ a flexible strategy and can accommodate some vocal onsets, slightly time-shifte
 d from a beat.
- We observed also that the vocal onset accuracy is on average almost the
- same as that with manual beat annotations (done with the time-redistribution
+ We observe also that the vocal onset accuracy is on average a bit inferior
+ to that with manual beat annotations (done with the time-redistribution
  weighting).
- Despite the higheset beat detection accuracy for 4/4, the contribution
- of automatic beat tracking is the least.
- One reason for that may be that the pattern note probability pattern 
+ 
+\end_layout
+
+\begin_layout Standard
+For the 4/4 meter, despite the highest beat detection accuracy, the improvement
+ of onset accuracy over the baseline is the least.
+ One reason for that may be that the note probability pattern 
 \begin_inset Formula $e(b)$
 \end_inset
 
- used for 4/4/ is not well representative for the singing style differernces.
+, used for 4/4 is not well representative for the singing style differences.
 \end_layout
 
 \begin_layout Standard
-Due to time constraints we did not test the time-redistribution weighting
- in this experiment.
+A paired t-test between the baseline and each of Ex-1 and Ex-2 resulted
+ in p-values of respectively 
+\begin_inset Formula $0.28$
+\end_inset
+
+ and 
+\begin_inset Formula $0.31$
+\end_inset
+
+ on total for all meter types.
+ We expect that statistical significance can be evaluated more accurately
+ with a bigger number of recordings.
+ 
 \end_layout
 
 \begin_layout Standard
@@ -4115,21 +4328,40 @@ Conclusions
 \begin_layout Standard
 
 \color black
-In this paper we presented a Bayesian approach for the simultaneous tracking
- of beats and vocal onsets of singing voice in polyphonic music recordings.
- The main contribution is that the approach integrates in one coherent model
- two existing probabilistic approaches for different tasks: beat tracking
- and note transcription.
+In this paper we presented a Bayesian approach for tracking vocal onsets
+ of singing voice in polyphonic music recordings.
+ The main contribution is that we integrate in one coherent model two existing
+ probabilistic approaches for different tasks: beat tracking and note transcript
+ion.
 
 \color red
  
 \color inherit
-Results confirm that the knowledge of the current position in a metrical
- cycle can improves the accuracy of vocal note onset detection.
- We believe that the biggest potential of the model lies in its generasability
- - applying it to singing material with different singing style and meter
- is as easy as tuning its parameters.
+Results confirm that the knowledge of the current position in the metrical
+ cycle can improve the accuracy of vocal note onset detection over different
+ metrical cycle types.
+ The model has a comprehensive set of parameters, whose appropriate tuning
+ allows application to material with different singing style and meter.
  
+\end_layout
+
+\begin_layout Standard
+In the future the manual adjustment of these parameters could be replaced
+ by learning their values from sufficiently big training data, which was
+ not present for this study.
+ In particular, the 
+\emph on
+lakh-vocal-segments 
+\emph default
+dataset could be easily extended substantially, which we plan to do in the
+ future.
+ Moreover, one could decrease the expected parameter values range, based
+ on learnt values, and thus decrease the size of the state space, which
+ is a current computational limitation.
+ 
+\color black
+We believe that the proposed model could be applied as well to full-fledged
+ transcription of singing voice.
 \end_layout
 
 \begin_layout Subparagraph*
@@ -4137,7 +4369,20 @@ Acknowledgements
 \end_layout
 
 \begin_layout Standard
-We thank Sebastian Böck for the implementational hints.
+We thank Sebastian B
+\begin_inset ERT
+status open
+
+\begin_layout Plain Layout
+
+{
+\backslash
+"o}
+\end_layout
+
+\end_inset
+
+ck for the implementation hints.
  Ajay Srinivasamurthy is currently with the Idiap Research Institute, Martigny,
  Switzerland.
  
@@ -4147,51 +4392,26 @@ We thank Sebastian Böck for the implementational hints.
 This work is partly supported by the European Research Council under the
  European Union’s Seventh Framework Program, as part of the CompMusic project
  (ERC grant agreement 267583) and partly by the Spanish Ministry of Economy
- and Competitiveness, through the ”María de Maeztu” Programme for Centres/Units
- of Excellence in R&D” (MDM-2015-0502).
-\end_layout
-
-\begin_layout Standard
-
-\color red
-\begin_inset Note Note
+ and Competitiveness, through the ”Mar
+\begin_inset ERT
 status open
 
 \begin_layout Plain Layout
 
-\color red
-Could be used for beat-infromed transcription of singing voice.
- 
+{
+\backslash
+'i}
 \end_layout
 
 \end_inset
 
-
-\end_layout
-
-\begin_layout Standard
-
-\color red
-\begin_inset Note Note
-status open
-
-\begin_layout Plain Layout
-
-\color red
-whereas the correlation of rhythmic accents and vowel onsets is an example
- of the influence of a fine-level context, true to a large extent in modern
- rock music.
-\end_layout
-
-\end_inset
-
-
+a de Maeztu” Programme for Centres/Units of Excellence in R&D” (MDM-2015-0502).
 \end_layout
 
 \begin_layout Standard
 \begin_inset CommandInset bibtex
 LatexCommand bibtex
-bibfiles "/Users/joro/Dropbox/LyxPhDThesis/JabRefOnsetDetectionFullReferences"
+bibfiles "JabRefOnsetDetectionFullReferences"
 options "default"
 
 \end_inset
