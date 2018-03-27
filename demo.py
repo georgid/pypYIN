@@ -25,6 +25,8 @@ import json
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
     WITH_MELODIA, WITH_ONSETS_SAME_PITCH, WITH_NOTES_STATES,\
     WITH_MAKAM
+from pypYIN.YinUtil import extractPredominantMelody, load_excerpt
+from pypYIN import MonoNoteParameters
 
 fs = 44100
 frameSize = 2048
@@ -33,7 +35,7 @@ frameSize = 2048
 hopSize = 256
 hop_time = float(hopSize)/float(fs)
 
-# hop_time = 0.02 # dont change for ISMIR 2017
+# hop_time = 0.02 ## used to reproduce results in paper ISMIR 2017 
 # hopSize = int (hop_time * float(fs))
 
 
@@ -49,66 +51,70 @@ import pypYIN.YinUtil
 
 import pypYIN.pYINmain
 import essentia.standard as ess
-from pypYIN.YinUtil import RMS
 VOCAL_ACTIVITY_EXT = '.vocal_anno'
 
 
-parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir))
-path_intersect_scripts = os.path.join(parentDir, 'otmm_vocal_segments_dataset/scripts')
-if path_intersect_scripts not in sys.path:
-        sys.path.append(path_intersect_scripts)
-from load_data import load_excerpt, load_beat_anno
 
 
 
-def doit( argv):
-    if len(argv) != 4:
-#         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
+def parse_arguments(argv):
+    if len(argv) != 4: #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
         sys.exit('usage: {} <data dir>  <rec MBID> <beat-aware>'.format(argv[0]))
     rec_ID = argv[2]
     dataset_dir = argv[1]
     rec_URI = dataset_dir + '/data/' + rec_ID + '/'
     filename1 = os.path.join(rec_URI, rec_ID + '.wav')
-    beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats_tab' )
-    excerpt_URI = os.path.join(rec_URI,  'excerpt.txt')
-    pitch_file_URI = os.path.join(rec_URI, rec_ID + '.pitch_audio_analysis' )
-    
+    beat_file_URI = os.path.join(rec_URI, rec_ID + '.beats_tab')
+    excerpt_URI = os.path.join(rec_URI, 'excerpt.txt')
+    pitch_file_URI = os.path.join(rec_URI, rec_ID + '.pitch_audio_analysis')
     pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS = int(argv[3]) # if metrical-accent aware detection desired, beats are read from annotations. no automatic beat detection implemented
-    output_dir = create_output_dirs(dataset_dir, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS)  
-    
+    output_dir = create_output_dirs(dataset_dir, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS)
     start_ts, end_ts = load_excerpt(excerpt_URI)
-# initialise
-#     filename1 = srcpath + '/../vignesh_short.wav'
-#     filename1 = srcpath + '/../vignesh.wav'
+    return filename1, beat_file_URI, rec_ID, pitch_file_URI, end_ts, output_dir
+
+def doit( argv):
+#     filename1, beat_file_URI, rec_ID, pitch_file_URI, end_ts, output_dir = parse_arguments(argv)
+    
+    if len(argv) != 3 and len(argv) != 2 : #         sys.exit('usage: {} <recording URI> <beat_annotaions URI> <rec MBID>'.format(argv[0]))
+        sys.exit('usage: {} <path_to_audio> <optional: extracted pitch file>'.format(argv[0]))
+    
+    audio_filename = argv[1]
+    pitch_file_URI = None
+    if len(argv) == 3:
+        pitch_file_URI = argv[2]
+    end_ts = None
+    
     pYinInst = pypYIN.pYINmain.PyinMain()
     pYinInst.initialise(channels=1, inputSampleRate=fs, stepSize=hopSize, blockSize=frameSize, lowAmp=0.25, onsetSensitivity=0.7, pruneThresh=0.1)
+    
     if WITH_MELODIA: # calculate RMS as a preprocessing step, ( done internally for pYIN pitch extraction) 
-        calc_rms(pYinInst, filename1)
-    #     frame_beat_annos = numpy.ones((estimatedPitch_vocal.shape[0]),dtype=int) # dummy
-    if pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS: #         frame_beat_annos = load_beat_anno_to_frames(beat_file_URI, estimatedPitch_vocal.shape[0]) # depreceated, mark frames with bar position
+        calc_rms(pYinInst, audio_filename)
+
+    if pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS:
+        from pypYIN.YinUtil import load_beat_anno
         bar_position_ts, bar_labels = load_beat_anno(beat_file_URI, 0) #
-        usul_type = get_meter_from_rec(rec_ID)
+        if WITH_MAKAM:
+            get_meter_from_rec(rec_ID)
+        else:  # for western pop assume 4/4 meter
+            usul_type = '44' 
     else:
         bar_position_ts = []
         bar_labels = []
         usul_type = None
     
-    ########### extract  pitch from polyphonic with turkish-makam tailored melodia
-    if os.path.isfile(pitch_file_URI):
+    ########### extract  pitch from polyphonic
+    if pitch_file_URI is not None and os.path.isfile(pitch_file_URI):
         with open(pitch_file_URI, 'r') as f1:
             estimatedPitch_vocal = json.load(f1)
             estimatedPitch_vocal = np.array(estimatedPitch_vocal)
     else:
-        estimatedPitch_vocal = extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, end_ts)
-        with open(pitch_file_URI, 'w') as f:
-            json.dump(estimatedPitch_vocal.tolist(), f)
+        estimatedPitch_vocal = extract_predominant_vocal_melody(audio_filename, hopSize, frameSize, pYinInst, end_ts)
+#         with open(pitch_file_URI, 'w') as f:
+#             json.dump(estimatedPitch_vocal.tolist(), f)
     pYinInst.setDecodedMonoPitch(estimatedPitch_vocal) # not sure if this really changes s.th., but does not break things
     
-
-    
-    
-    ### get remaining features
-    featureSet, MIDI_pitch_contour = pYinInst.getRemainingFeatures(estimatedPitch_vocal, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
+    ### note transcription
+    featureSet, MIDI_pitch_contour = pYinInst.segment_notes(estimatedPitch_vocal, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS, bar_position_ts, bar_labels, hop_time, usul_type) # 1. convert to MIDI. 2. note segmentation.
     
     ########## print note step states
     noteStates = []
@@ -120,59 +126,78 @@ def doit( argv):
     
     extension = determine_file_with_extension(NUM_SEMITONES, STEPS_PER_SEMITONE, pypYIN.MonoNoteParameters.WITH_BEAT_ANNOS, WITH_DETECTED_BEATS=0)
     
-    MBID = os.path.basename(filename1)[:-4]
-    URI_output = os.path.join(output_dir, MBID,  MBID + extension)
-    store_results(featureSet.onsetFrames, URI_output, hop_time)
+    print featureSet.onsetFrames # these are states of a note (1,2,3). 1 following 3 means an onset  
+    print featureSet.m_oNotes # note pitches 
+    
+    ## TODO: fix output dir
+#     output_dir = '.'
+#     MBID = os.path.basename(audio_filename)[:-4]
+#     URI_output = os.path.join(output_dir, MBID,  MBID + extension)
+#     store_results(featureSet.onsetFrames, URI_output, hop_time)
 
     
 
-def extract_predominant_vocal_melody(filename1, hopSize, frameSize, pYinInst, end_ts):
+
+
+
+def extract_predominant_vocal_melody(audio_filename, hopSize, frameSize, pYinInst, end_ts=None):
     '''
     extract predominant vocal pitch contour
     as workaround, intersect extracted pitch with vocal annotation
+    
+    Parameters
+    -----------------------
+    end_ts: extract until this ts, disregard the rest of the audio  
     
     Returns
     -------------------
     list of estimated pitch values in Hz, at non-vocal returns value <= 0 
     '''
-    if WITH_MELODIA:#### predominant melody makam
-        path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
-        if path_Alignment_duration not in sys.path:
-            sys.path.append(path_Alignment_duration)
-        from src.align.FeatureExtractor import extractPredominantMelodyMakam, extractPredominantMelody
+    if WITH_MELODIA:
         
-        if WITH_MAKAM:
-            estimatedPitch_andTs = extractPredominantMelodyMakam( filename1[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
-        else: # for lakh, use melodia
-            estimatedPitch_andTs = extractPredominantMelody(filename1, frameSize, hopSize)
+        if WITH_MAKAM: #### use predominant melody tailored to makam
+            path_Alignment_duration =     os.path.join(parentDir, 'AlignmentDuration')
+            if path_Alignment_duration not in sys.path:
+                sys.path.append(path_Alignment_duration)
+            from src.align.FeatureExtractor import extractPredominantMelodyMakam
+            estimatedPitch_andTs = extractPredominantMelodyMakam( audio_filename[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
+        else: # use melodia
+            estimatedPitch_andTs = extractPredominantMelody(audio_filename, frameSize, hopSize)
             
     else: ######### pYIN 
-        audio = ess.MonoLoader(filename = filename1, sampleRate = fs)()
+        audio = ess.MonoLoader(filename = audio_filename, sampleRate = fs)()
         for frame in ess.FrameGenerator(audio, frameSize=frameSize, hopSize=hopSize):
             featureSet = pYinInst.process(frame)
             
-        ##### calculate smoothed pitch and mono note
-        estimatedPitch = pYinInst.decodePitchTrack() # this is just pitch 
-        ts = [] ### generate timestamps
+        estimatedPitch = pYinInst.decodePitchTrack() # pitch extraction 
+        ts = [] ### generated timestamps
         for onset_frame_number,frame in enumerate(estimatedPitch):
             ts.append( frame_to_ts(onset_frame_number, float(hopSize/fs)) ) 
-        estimatedPitch_andTs = np.vstack( (np.array(ts),estimatedPitch )).T
+        estimatedPitch_andTs = np.vstack( (np.array(ts), estimatedPitch )).T
     
-    idx_end_ts = np.searchsorted(estimatedPitch_andTs[:,0], end_ts) #  until end_ts
-    estimatedPitch_andTs = estimatedPitch_andTs[:min(idx_end_ts+1,estimatedPitch_andTs.shape[0]),:]
-    ####### read vocal annotation from file and intersect
-   
-    from intersect_vocal_and_pitch import intersect_section_links 
+    if end_ts is not None:
+        idx_end_ts = np.searchsorted(estimatedPitch_andTs[:,0], end_ts) #  until end_ts
+        estimatedPitch_andTs = estimatedPitch_andTs[:min(idx_end_ts+1,estimatedPitch_andTs.shape[0]),:]
+    
+    if MonoNoteParameters.WITH_VOCAL_SEGMENTS: # vocal segments given
+        estimatedPitch_andTs = intersect_vocal_segments(audio_filename, estimatedPitch_andTs)
+    
+    return estimatedPitch_andTs[:,1]
+
+
+def intersect_vocal_segments(filename1, estimatedPitch_andTs):
+    '''
+    read vocal activity from a file and intersect with extracted pitch contour
+    '''
+    from intersect_vocal_and_pitch import intersect_section_links  
     from main import load_voiced_segments
-    voiced_segments = load_voiced_segments(filename1[:-4] + VOCAL_ACTIVITY_EXT)    
-    estimatedPitch_andTs_vocal =  intersect_section_links(estimatedPitch_andTs, voiced_segments) # onsets with pitch
-    
-    #  
-    estimatedPitch_vocal = estimatedPitch_andTs_vocal[:,1]
-    return estimatedPitch_vocal
+    voiced_segments = load_voiced_segments(filename1[:-4] + VOCAL_ACTIVITY_EXT)
+    estimatedPitch_andTs_vocal = intersect_section_links(estimatedPitch_andTs, voiced_segments) # onsets with pitch
+    return estimatedPitch_andTs_vocal
 
 def calc_rms(pYINinstnce, filename1):
     '''
+    calculare root mean square
     copied from pYINMain.pYIN. done here as  a separate func to call when using melodia
     '''        
     audio = ess.MonoLoader(filename = filename1, sampleRate = fs)()
@@ -187,26 +212,21 @@ def calc_rms(pYINinstnce, filename1):
         pYINinstnce.m_level = np.append(pYINinstnce.m_level, rms)
 
 
-
-
-def get_meter_from_rec(rec_ID):
+def get_meter_from_rec(recording_ID):
     '''
-    automatically extract the meter from the metadata of the recording (MusicBrainzID)
+    automatically extract the meter from the metadata of the recording by ID (MusicBrainzID)
     '''
-       
-    if WITH_MAKAM == 0: # for western pop
-        return '44'
     
     # otherwise for makam
     from makammusicbrainz.audiometadata import AudioMetadata
     audioMetadata = AudioMetadata(get_work_attributes=True, print_warnings=True)
 
-    audio_meta = audioMetadata.from_musicbrainz(rec_ID)
+    audio_meta = audioMetadata.from_musicbrainz(recording_ID)
     try:
         usul_type = audio_meta['usul'][0]['attribute_key'] 
         
     except:
-        if rec_ID == '7aec9833-6482-4917-87bd-e60c7c1dae3c':
+        if recording_ID == '7aec9833-6482-4917-87bd-e60c7c1dae3c':
             usul_type = 'kapali_curcuna'
         else:
             sys.exit('no usul type can be automatically fetched')

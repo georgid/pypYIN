@@ -23,17 +23,9 @@
 import numpy as np
 from math import *
 import logging
-import os
-import sys
+from pypYIN.onsets.OnsetSmoothing import getDistFromEvent
 
-parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir,    os.path.pardir)) 
-Alignment_URI = os.path.join(parentDir, 'AlignmentDuration') 
-
-if Alignment_URI not in sys.path:
-    sys.path.append(Alignment_URI)
     
-from src.onsets.OnsetDetector import getDistFromEvent
-
 class SparseHMM(object):
 
     def __init__(self, num_rows_transmatrix, num_columns_transmatrix):

@@ -22,24 +22,18 @@
 
 import numpy as np
 import sys
-import os
 
-parentDir = os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__) ), os.path.pardir, os.path.pardir)) 
 
-pathEvaluation = os.path.join(parentDir, 'AlignmentDuration')
-if pathEvaluation not in sys.path:
-    sys.path.append(pathEvaluation)
-
-from src.onsets.OnsetSmoothing import OnsetSmoothingFunction
+from onsets.OnsetSmoothing import OnsetSmoothingFunction
 
 WITH_MAKAM = 0
 
 WITH_BEAT_ANNOS = 0 #  read beats from annotation, if set, it means we do beat-aware note onset detection 
-WITH_MELODIA = 0 # use melodia for pitch tracking. =1 to reproduce results of ISMIR 2017 paper
-WITH_ONSETS_SAME_PITCH = 0 # detect onsets on same pitch. ==0 to reproduce results of ISMIR 2017 paper 
+WITH_MELODIA = 1 # use melodia for pitch tracking. =1 to reproduce results of ISMIR 2017 paper
+WITH_ONSETS_SAME_PITCH = 1 # detect onsets on same pitch. ==0 to reproduce results of ISMIR 2017 paper 
+WITH_VOCAL_SEGMENTS = 0
 
-
-STEPS_PER_SEMITONE = 1
+STEPS_PER_SEMITONE = 3 # =1 to reproduce results of paper ISMIR 2017
 NUM_SEMITONES = 35
 
 # STEPS_PER_SEMITONE = 2
@@ -47,7 +41,7 @@ NUM_SEMITONES = 35
 
 PITCH_PROB = 0.9  # prior probabilitiy of voice being pitch
 
-################ WITH BEAT DETECTION ###############################
+################ parameters needed when WITH BEAT DETECTION ###############################
 WITH_NOTES_STATES = 0 # no note states, e.g. decoding equivalent to the default Pattern Tracking Processor.  
 WITH_NOTES_STATES = 1
 
@@ -105,10 +99,8 @@ class MonoNoteParameters(object):
                     currProb = self.osf.calcOnsetWeight(iDist) * self.barPositionProbs[ibarPos] # TODO: normalize highest Weight to be 1
                     self.barPositionDistance_Probs[ibarPos,iDist] = currProb
             self.barPositionDistance_Probs = np.power(self.barPositionDistance_Probs, DELTA) # raise to power to control influence of bars
-        else:
-            self.barPositionDistance_Probs = [1-self.pSilentSelftrans] # in case of no bar-positions used
-        
-          
+        else: # no bar-positions used
+            self.barPositionDistance_Probs = [1-self.pSilentSelftrans] 
         
 
         self.n = self.nPPS * self.nS * self.nSPP 

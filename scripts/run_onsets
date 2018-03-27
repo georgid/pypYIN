@@ -19,10 +19,7 @@ python ~/workspace/pypYIN/doit_all.py $PATH_DATASET 0 # all
 Experiment 1: run with annotated beats :
 --------------------------------------------
 
-MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef;
 MBID=f5a89c06-d9bc-4425-a8e6-0f44f7c108ef; #  for lakh
-
-PATH_DATA=/Users/joro/workspace/otmm_vocal_segments_dataset/;
 
 python ~/workspace/pypYIN/demo.py $PATH_DATASET $MBID 1  # one rec
 
@@ -47,4 +44,4 @@ python ~/workspace/madmom_notes/bin/GMMNotePatternTracker_all.py
 to turn off the state space for notes (in essense, equivalent to madmom's defaults mode), set WITH_NOTES_STATES=0 
 
 
-NOTE: for reproducing beat detection and evaluation see run_beats 
+NOTE: for reproducing beat detection see run_beats 

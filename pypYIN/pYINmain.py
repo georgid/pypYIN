@@ -204,7 +204,7 @@ class PyinMain(object):
             self.fs.m_oSmoothedPitchTrack.append(copy.copy(f))
     
 
-    def getRemainingFeatures(self, pitch_contour, with_bar_positions, bar_position_ts, bar_labels, hop_time, usul_type):
+    def segment_notes(self, pitch_contour, with_bar_positions, bar_position_ts, bar_labels, hop_time, usul_type):
         '''
         decode note states using MonoNote probabilistic model
         
@@ -315,7 +315,7 @@ class PyinMain(object):
                         medianFreq = pow(2, (medianPitch-69)/12)*440
                         f.resetValues()
                         f.values = np.append(f.values, np.double(medianFreq))
-                        self.fs.m_oNotes.append(copy.copy(f)) # store median frequency per note
+                        self.fs.m_oNotes.append(copy.copy(f)) # store median frequency per note. NOT EFFICIENT
 
                     
                     notePitchTrack = np.array([], dtype=np.float32) # new note starts

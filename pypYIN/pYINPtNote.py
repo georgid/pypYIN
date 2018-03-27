@@ -60,7 +60,7 @@ def pYINPtNote(filename1,fs=44100,frameSize=2048,hopSize=256):
         print ii.values
     print '\n'
 
-    fs = pYinInst.getRemainingFeatures(monoPitch)
+    fs = pYinInst.segment_notes(monoPitch)
 
     # output of mono notes,
     # column 0: frame number,

@@ -1,5 +1,92 @@
 from math import *
 import numpy as np
+import mir_eval
+import essentia
+import essentia.standard
+
+
+'''
+    python implementation of pYIN pitch-extraction utility functions. 
+    Almost all ported from VAMP plugin pYIN
+
+'''
+
+def load_excerpt(URI_excerpt):
+    '''
+    load timestamps of exceprt
+    to reduce dependency copied from https://github.com/georgid/lakh_vocal_segments_dataset/tree/master/scripts/load_data.py
+    '''
+    start_ts, end_ts, _ = mir_eval.io.load_delimited(URI_excerpt, [float,float,str],delimiter='\t')
+    return float(start_ts[0]), float(end_ts[0])
+
+
+def load_beat_anno(beats_URI, start_ts=0):
+    '''
+    load beat annotations 
+    to reduce dependency copied from https://github.com/georgid/lakh_vocal_segments_dataset/tree/master/scripts/load_data.py
+    
+    Returns
+    -------------------
+    sample_labels: list
+        beat labels at each frame 
+    '''
+    
+    try:
+        beat_ts, beat_labels = mir_eval.io.load_delimited(beats_URI,[float,int],delimiter=',')
+    except:
+        beat_ts, beat_labels = mir_eval.io.load_delimited(beats_URI,[float,int],delimiter='\t')
+    
+    # shift with excerpt
+
+    beat_ts = np.array(beat_ts)
+    beat_ts += start_ts
+    
+    return beat_ts.tolist(), beat_labels
+
+def extractPredominantMelody(audio_URI, frameSize=None, hopSize=None):
+    '''
+    extract predominant melody with melodia
+    to reduce dependency copied from https://github.com/georgid/AlignmentDuration/blob/noteOnsets/src/align/FeatureExtractor.py
+
+    audio_URI: string
+        full file URI with extension
+    '''
+    from essentia.standard import PredominantPitchMelodia
+
+    fs = 44100
+    vTol = 1.4
+    
+    loader = essentia.standard.MonoLoader(filename= audio_URI    )
+    audioSamples = loader()
+
+    # extract f0 using ESSENTIA
+    input = essentia.array(audioSamples)
+    pitchTracker = PredominantPitchMelodia(frameSize = frameSize, hopSize = hopSize, sampleRate = fs,
+        voicingTolerance = vTol, voiceVibrato = False, filterIterations=10, 
+        peakDistributionThreshold=0.9, guessUnvoiced=True)
+    
+#     pitchTracker = PredominantMelody(frameSize = wSize, hopSize = hSize, sampleRate = fs,
+#         voicingTolerance = vTol, voiceVibrato = False, filterIterations=10, 
+#         peakDistributionThreshold=0.9, guessUnvoiced=True)
+    
+    f0, pitchConf = pitchTracker(input)
+    
+    timestamps = calc_TimeStamps(audioSamples, f0, frameSize, fs)
+    est_freq_and_ts = np.array(zip(timestamps, f0))
+    
+    return est_freq_and_ts
+
+def calc_TimeStamps(audioSamples,  feature_series, frameSize, fs):
+    '''
+    utility function to calculate timestamps
+    to reduce dependency copied from https://github.com/georgid/AlignmentDuration/blob/noteOnsets/src/align/FeatureExtractor.py
+
+    '''
+    duration = essentia.standard.Duration()
+    duration_ = duration(audioSamples)
+    timestamps = np.arange(len(feature_series)) / float(len(feature_series)) * duration_ 
+    timestamps += (float(frameSize / 2) / fs)
+    return timestamps
 
 def slowDifference(input, yinBufferSize):
 

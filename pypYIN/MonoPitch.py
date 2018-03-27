@@ -25,6 +25,9 @@ import numpy as np
 from math import *
 
 class MonoPitch(object):
+    '''
+    python implementation of pYIN pitch-extraction class. Ported from VAMP plugin pYIN without further modifications
+    '''
     def __init__(self):
         self.hmm = MonoPitchHMM()
 

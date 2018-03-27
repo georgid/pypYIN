@@ -27,6 +27,7 @@ from math import *
 from scipy.stats import norm
 import sys
 import logging
+from pypYIN.MonoNoteParameters import WITH_BEAT_ANNOS
 
 
 
@@ -202,7 +203,8 @@ class MonoNoteHMM(SparseHMM):
             
             tempTransProbSilent, probSumSilent = self._build_silent_to_attack(iPitch, index, noteDistanceDistr)
             
-            self._build_bar_aware_silent_to_attack(tempTransProbSilent, probSumSilent)
+            if WITH_BEAT_ANNOS:
+                self._build_bar_aware_silent_to_attack(tempTransProbSilent, probSumSilent)
     
     def _build_silent_to_attack(self, iPitch, index, noteDistanceDistr):
         '''
