@@ -6,7 +6,10 @@ Pitch and note tracking in monophonic (a cappella) audio
 This is a fork of the python version of pYIN of Matthias Mauch originally ported [here](https://github.com/ronggong/pypYIN)
 
 
-In this fork, two modifications are made: 
+In this fork, following modifications of the original implementation are made: 
+
+- we add efficient numpy data structures for HMM-based note-segmentation (2. step of pYIN)   
+
 - the transition model for note tracking is adapted to take into account positions in the musical measure/bar.  This is activated by the flag [WITH_BEAT_ANNOS](https://github.com/georgid/pypYIN/blob/master/pypYIN/MonoNoteParameters.py#L55)
 More specifically, we use likelihoods of note onset events (in `code.MonoNoteParameters.barPositionDist_Probs`), at different bar position (e.g. from 0 to 9, depending on the bar). In the original version the transition likelihood from silence to a following note attack state is distributed by the pitch difference from current to following note. NOTE: the sum of the transition likelihoods over all possible following notes is a constant `1-selfSilenceTransition`. In this version, on decoding, this constant is replaced for each time frame by the likelihood of the closest bar position from `barPositionDist_Probs`. This means essentially, that the same pitch-difference distribution scheme is kept, but scaled varyingly when close in time to a beginning of the bar (e.g. scaled more at downbeats and less else).  
 
@@ -47,7 +50,8 @@ python demo.py <data directory>  <recording musicbrainz id> <using beats>
 
 ## Citation
 
-Georgi Dzhambazov, André Holzapfel, Ajay Srinivasamurthy, Xavier Serra, Metrical-Accent Aware Vocal Onset Detection in Polyphonic Audio, In Proceedings of ISMIR 2017
+> Georgi Dzhambazov, André Holzapfel, Ajay Srinivasamurthy, Xavier Serra, 
+> Metrical-Accent Aware Vocal Onset Detection in Polyphonic Audio, In Proceedings of ISMIR 2017
 
 
 ## Contact
