@@ -25,7 +25,7 @@ import json
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
     WITH_MELODIA, WITH_ONSETS_SAME_PITCH, WITH_NOTES_STATES,\
     WITH_MAKAM
-from pypYIN.YinUtil import extractPredominantMelody, load_excerpt
+from pypYIN.YinUtil import load_excerpt
 from pypYIN import MonoNoteParameters
 
 fs = 44100
@@ -162,6 +162,7 @@ def extract_predominant_vocal_melody(audio_filename, hopSize, frameSize, pYinIns
             from src.align.FeatureExtractor import extractPredominantMelodyMakam
             estimatedPitch_andTs = extractPredominantMelodyMakam( audio_filename[:-4], frameSize, hopSize, jointAnalysis=False, musicbrainzid=None, preload=True) #jointAnalysis=False, becasue no   
         else: # use melodia
+            from pypYIN.YinUtil import extractPredominantMelody, 
             estimatedPitch_andTs = extractPredominantMelody(audio_filename, frameSize, hopSize)
             
     else: ######### pYIN 

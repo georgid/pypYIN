@@ -22,7 +22,7 @@
 
 import numpy as np
 from math import *
-import YinUtil
+import pypYIN.YinUtil
 
 class Yin(object):
     '''

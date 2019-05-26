@@ -23,10 +23,10 @@
 import numpy as np
 import copy
 from math import *
-from Yin import *
-from YinUtil import RMS
-from MonoPitch import MonoPitch
-from MonoNote import MonoNote
+from pypYIN.Yin import Yin
+from pypYIN.YinUtil import RMS
+from pypYIN.MonoPitch import MonoPitch
+from pypYIN.MonoNote import MonoNote
 from pypYIN.MonoNoteParameters import NUM_SEMITONES, STEPS_PER_SEMITONE,\
     PITCH_PROB
 

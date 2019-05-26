@@ -29,7 +29,7 @@ from onsets.OnsetSmoothing import OnsetSmoothingFunction
 WITH_MAKAM = 0
 
 WITH_BEAT_ANNOS = 0 #  read beats from annotation, if set, it means we do beat-aware note onset detection 
-WITH_MELODIA = 1 # use melodia for pitch tracking. =1 to reproduce results of ISMIR 2017 paper
+WITH_MELODIA = 0 # use melodia for pitch tracking. =1 to reproduce results of ISMIR 2017 paper
 WITH_ONSETS_SAME_PITCH = 1 # detect onsets on same pitch. ==0 to reproduce results of ISMIR 2017 paper 
 WITH_VOCAL_SEGMENTS = 0
 

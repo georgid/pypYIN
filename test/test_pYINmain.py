@@ -73,9 +73,9 @@ class Test(unittest.TestCase):
         noteStates = []
         for mnOut in featureSet.m_oMonoNoteOut:
             noteStates.append(mnOut.noteState)
-        print noteStates
+        print(noteStates)
 #         print featureSet.onsetFrames
-        
+        assert 1
          
 
 if __name__ == "__main__":
