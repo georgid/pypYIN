@@ -53,7 +53,7 @@ python demo.py <data directory>  <recording musicbrainz id> <using beats>
 > Georgi Dzhambazov, André Holzapfel, Ajay Srinivasamurthy, Xavier Serra, 
 > Metrical-Accent Aware Vocal Onset Detection in Polyphonic Audio, In Proceedings of ISMIR 2017
 
-NOTE: This repository works in together with the other repository based on madmom[https://github.com/georgid/madmom/] for  synchronous vocal note onset and beat tracking.   
+NOTE: This repository works in together with the other repository based on [madmom](https://github.com/georgid/madmom/) for  synchronous vocal note onset and beat tracking.   
 
 ## Contact
  If you have any problem about this python version code, please contact:
